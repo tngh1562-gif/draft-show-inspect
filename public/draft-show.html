@@ -1,0 +1,1179 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Davido Inhouse Draft Show</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{--blue:#58b4ff;--red:#ff4d6a;--gold:#f5d97e;--bg:#03050f}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
+  color:#f0f6ff;font-family:'Rajdhani','Pretendard','Noto Sans KR',sans-serif}
+
+/* BG */
+#particleCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+.bg-layer{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 55% at 20% 50%,rgba(88,180,255,.16),transparent 70%),
+    radial-gradient(ellipse 60% 55% at 80% 50%,rgba(255,77,106,.14),transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 50%,rgba(245,217,126,.09),transparent 60%),
+    linear-gradient(180deg,#040818,#060c1e 50%,#040818)}
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:linear-gradient(rgba(88,180,255,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(88,180,255,.035) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 20%,transparent 100%)}
+.bg-vignette{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:radial-gradient(ellipse 110% 110% at 50% 50%,transparent 45%,rgba(3,5,15,.9) 100%)}
+.scanlines{position:fixed;inset:0;z-index:1;pointer-events:none;
+  background:repeating-linear-gradient(0deg,rgba(0,0,0,.025) 0 1px,transparent 1px 3px)}
+
+/* CORNERS */
+.corner{position:fixed;z-index:4;width:32px;height:32px;pointer-events:none}
+.corner::before,.corner::after{content:'';position:absolute;background:var(--gold);opacity:.7}
+.corner::before{width:100%;height:2px}.corner::after{width:2px;height:100%}
+.corner.tl{top:16px;left:16px}.corner.tl::before,.corner.tl::after{top:0;left:0}
+.corner.tr{top:16px;right:16px}.corner.tr::before{top:0;right:0}.corner.tr::after{top:0;right:0}
+.corner.bl{bottom:16px;left:16px}.corner.bl::before{bottom:0;left:0}.corner.bl::after{bottom:0;left:0}
+.corner.br{bottom:16px;right:16px}.corner.br::before{bottom:0;right:0}.corner.br::after{bottom:0;right:0}
+
+/* ENERGY LINES */
+.eline{position:fixed;height:2px;border-radius:999px;z-index:4;opacity:.5;pointer-events:none;
+  filter:drop-shadow(0 0 8px currentColor)}
+.eline.blue{top:84px;left:30px;width:28vw;color:var(--blue);
+  background:linear-gradient(90deg,transparent,var(--blue),transparent)}
+.eline.red{top:84px;right:30px;width:28vw;color:var(--red);
+  background:linear-gradient(270deg,transparent,var(--red),transparent)}
+.eline.pulse{animation:ePulse .6s ease}
+@keyframes ePulse{0%{opacity:.1;transform:scaleX(.3)}40%{opacity:1}100%{opacity:.5;transform:scaleX(1)}}
+
+/* SWEEP */
+.sweep{position:fixed;inset:0;z-index:6;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  transform:translateX(-120%)}
+.sweep.on{animation:sweepAnim .75s ease}
+@keyframes sweepAnim{0%{opacity:0;transform:translateX(-120%)}15%{opacity:.8}100%{opacity:0;transform:translateX(120%)}}
+
+/* ARENA */
+.arena{position:relative;z-index:2;width:100vw;height:100vh;min-width:1080px;min-height:580px;
+  display:grid;grid-template-rows:auto 1fr auto;padding:18px 30px 16px;gap:12px}
+
+/* HUD */
+.hud{display:grid;grid-template-columns:1fr 540px 1fr;align-items:center;gap:16px;position:relative;z-index:5}
+.side-title{display:flex;align-items:center;gap:12px;font-size:13px;font-weight:700;letter-spacing:3px}
+.side-title.right{justify-content:flex-end}
+.side-title.blue{color:var(--blue)}.side-title.red{color:var(--red)}
+.side-orb{width:13px;height:13px;border-radius:50%;flex-shrink:0;animation:orbPulse 2.2s ease-in-out infinite}
+.blue .side-orb{background:var(--blue);box-shadow:0 0 14px var(--blue),0 0 28px rgba(88,180,255,.35)}
+.red .side-orb{background:var(--red);box-shadow:0 0 14px var(--red),0 0 28px rgba(255,77,106,.35)}
+@keyframes orbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35);opacity:.7}}
+.brand{text-align:center;position:relative;padding:12px 0}
+.brand-eyebrow{font-size:11px;font-weight:700;letter-spacing:6px;color:var(--gold)}
+.brand-title{font-size:30px;font-weight:700;letter-spacing:3px;line-height:1;
+  background:linear-gradient(135deg,#fff 20%,var(--gold) 50%,#fff 80%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 18px rgba(245,217,126,.3))}
+.brand-line{width:180px;height:1px;margin:6px auto;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.55}
+.brand-sub{font-size:11px;font-weight:700;letter-spacing:4px;color:#7a92b0}
+
+/* MAIN */
+.main{display:grid;grid-template-columns:1fr 120px 1fr;gap:10px;align-items:stretch;min-height:0}
+
+/* CARDS */
+.team-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:9px;min-height:0}
+.champ-card{position:relative;min-width:0;overflow:hidden;border-radius:18px;
+  border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.03);
+  transform:skewX(-3deg);opacity:.3;isolation:isolate;
+  transition:opacity .5s,box-shadow .5s}
+.red-strip .champ-card{transform:skewX(3deg)}
+.champ-card .splash{position:absolute;inset:-6%;
+  background-image:var(--splash);background-size:cover;background-position:var(--face-pos,50% 15%);
+  opacity:.14;
+  filter:saturate(.45) grayscale(.3);transition:opacity .7s,filter .7s,transform .7s}
+.champ-card.revealed .splash{opacity:1;filter:saturate(1.1) contrast(1.04)}
+.champ-card::after{content:'';position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.03),rgba(0,0,0,.2) 38%,rgba(0,0,0,.82));z-index:1}
+.champ-card::before{content:'';position:absolute;inset:0;border-radius:18px;z-index:2;pointer-events:none;opacity:0;transition:opacity .5s}
+.blue-strip .champ-card.revealed::before{box-shadow:inset 0 0 0 1px rgba(88,180,255,.55),0 0 28px rgba(88,180,255,.12);opacity:1}
+.red-strip .champ-card.revealed::before{box-shadow:inset 0 0 0 1px rgba(255,77,106,.55),0 0 28px rgba(255,77,106,.12);opacity:1}
+.champ-card.revealed{opacity:1;animation:cardReveal .65s cubic-bezier(.16,1,.3,1) forwards}
+.red-strip .champ-card.revealed{animation:cardRevealR .65s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes cardReveal{0%{transform:skewX(-3deg) translateY(26px) scale(.87);filter:blur(8px) brightness(1.7)}55%{filter:blur(0) brightness(1.1)}100%{transform:skewX(-3deg) translateY(0) scale(1);filter:blur(0)}}
+@keyframes cardRevealR{0%{transform:skewX(3deg) translateY(26px) scale(.87);filter:blur(8px) brightness(1.7)}55%{filter:blur(0) brightness(1.1)}100%{transform:skewX(3deg) translateY(0) scale(1);filter:blur(0)}}
+.lane-badge{position:absolute;top:10px;left:10px;z-index:3;width:38px;height:38px;border-radius:11px;
+  display:grid;place-items:center;background:rgba(4,8,18,.75);border:1px solid rgba(255,255,255,.13);
+  font-size:11px;font-weight:700;color:#ccdaef;backdrop-filter:blur(8px)}
+.card-info{position:absolute;left:12px;right:12px;bottom:12px;z-index:3}
+.card-player{font-size:14px;font-weight:700;line-height:1.2;overflow-wrap:anywhere;word-break:break-word;text-shadow:0 2px 10px rgba(0,0,0,.9)}
+.card-champ{margin-top:3px;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--gold);text-shadow:0 1px 8px rgba(0,0,0,.8)}
+.champ-card:not(.revealed) .card-player{color:#4d5e72}
+.champ-card:not(.revealed) .card-champ{color:#3a4c60}
+.blue-strip .lane-badge{display:none}
+
+/* CENTER */
+.center-core{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}
+.vs-ring{position:relative;width:120px;height:120px;display:grid;place-items:center;flex-shrink:0}
+.vs-ring-svg{position:absolute;inset:0;animation:ringRot 8s linear infinite}
+@keyframes ringRot{to{transform:rotate(360deg)}}
+.vs-inner{position:relative;z-index:1;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle,rgba(245,217,126,.14),rgba(6,10,22,.92) 70%);
+  border:1px solid rgba(245,217,126,.22);box-shadow:0 0 26px rgba(245,217,126,.1),inset 0 0 18px rgba(245,217,126,.05)}
+.vs-text{font-size:34px;font-weight:700;letter-spacing:1px;
+  background:linear-gradient(135deg,#fff,var(--gold));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 10px rgba(245,217,126,.4))}
+.phase-box{text-align:center;background:rgba(4,8,18,.68);border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;padding:12px 16px;backdrop-filter:blur(12px);width:100%}
+.phase-lbl{font-size:10px;font-weight:700;letter-spacing:4px;color:var(--gold);margin-bottom:5px}
+.phase-name{font-size:16px;font-weight:700;line-height:1.2}
+.phase-timer{margin-top:7px;font-size:24px;font-weight:700;letter-spacing:2px;font-variant-numeric:tabular-nums}
+
+/* BANS */
+.lower{display:grid;grid-template-columns:1fr 136px 1fr;gap:16px;align-items:stretch;position:relative;z-index:3}
+.ban-panel{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;padding:10px;
+  background:rgba(4,8,18,.56);border:1px solid rgba(255,255,255,.07);border-radius:16px;backdrop-filter:blur(14px)}
+.ban-slot{position:relative;border-radius:11px;overflow:hidden;border:1px solid rgba(255,255,255,.07);
+  background:rgba(255,255,255,.04);aspect-ratio:3/4;
+  opacity:.22;filter:grayscale(1) brightness(.45);transform:scale(.9);
+  transition:opacity .4s,filter .4s,transform .4s,border-color .4s}
+.ban-slot::before{content:'';position:absolute;inset:-8%;background-image:var(--splash);background-size:cover;background-position:center 15%;opacity:.5;filter:grayscale(.3)}
+.ban-slot::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.85))}
+.ban-slot.revealed{opacity:1;filter:grayscale(.18) brightness(.75) saturate(1.1);transform:scale(1);
+  border-color:rgba(255,60,80,.35);animation:banReveal .45s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes banReveal{0%{transform:scale(.75) translateY(-10px);filter:grayscale(1) brightness(1.5)}55%{transform:scale(1.04)}100%{transform:scale(1)}}
+.ban-slash{position:absolute;left:-20%;right:-20%;top:48%;height:2px;z-index:2;
+  background:linear-gradient(90deg,transparent,#ff3050 20%,#ff3050 80%,transparent);
+  box-shadow:0 0 10px #ff3050,0 0 22px rgba(255,48,80,.4);
+  transform:rotate(-26deg) scaleX(0);transition:transform .3s ease .18s}
+.ban-slot.revealed .ban-slash{transform:rotate(-26deg) scaleX(1)}
+.ban-name{position:absolute;left:3px;right:3px;bottom:4px;z-index:3;text-align:center;
+  font-size:9px;font-weight:700;color:#fff;text-shadow:0 1px 6px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lower-center{display:flex;align-items:center;justify-content:center}
+
+/* TOAST */
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:8;padding:8px 18px;
+  border-radius:999px;background:rgba(4,8,18,.82);border:1px solid rgba(255,255,255,.11);
+  color:#c0d0e8;font-size:12px;font-weight:700;letter-spacing:1px;backdrop-filter:blur(14px);white-space:nowrap}
+
+/* AUDIO */
+#audioUnlock{position:fixed;bottom:18px;right:18px;z-index:10;cursor:pointer;padding:8px 16px;
+  border-radius:999px;border:1px solid rgba(255,255,255,.18);background:rgba(4,8,18,.82);
+  backdrop-filter:blur(10px);color:#dbe8ff;font-size:12px;font-weight:700;letter-spacing:1px;transition:opacity .4s}
+#audioUnlock:hover{background:rgba(88,180,255,.18)}
+#audioUnlock.hidden{opacity:0;pointer-events:none}
+
+/* COMPLETE */
+.complete{position:fixed;inset:0;z-index:25;pointer-events:none;display:grid;place-items:center;
+  text-align:center;opacity:0;background:radial-gradient(circle at 50% 44%,rgba(245,217,126,.11),rgba(3,5,15,.82) 55%,rgba(3,5,15,.97))}
+.complete.on{animation:completeAnim 2.8s ease forwards}
+.complete b{display:block;font-size:60px;font-weight:700;letter-spacing:6px;
+  background:linear-gradient(135deg,#fff 20%,var(--gold) 50%,#fff 80%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 40px rgba(245,217,126,.4))}
+.complete span{display:block;margin-top:12px;color:var(--gold);font-size:14px;font-weight:700;letter-spacing:5px}
+@keyframes completeAnim{0%{opacity:0;filter:blur(14px)}14%,75%{opacity:1;filter:blur(0)}100%{opacity:0;filter:blur(10px)}}
+
+.arena.draft-exit .champ-card,.arena.draft-exit .ban-slot{
+  transform-origin:center;
+  will-change:transform,opacity,filter;
+}
+.arena.results-ready{opacity:0;transition:opacity .5s ease}
+
+.matchup-results{position:fixed;inset:0;z-index:24;pointer-events:none;opacity:0;
+  display:grid;grid-template-rows:auto 1fr auto;padding:46px 64px 38px;
+  background:radial-gradient(circle at 50% 20%,rgba(245,217,126,.13),transparent 34%),
+    linear-gradient(90deg,rgba(88,180,255,.16),transparent 32%,transparent 68%,rgba(255,77,106,.15)),
+    rgba(3,5,15,.92);
+  transform:scale(1.04);filter:blur(16px)}
+.matchup-results.on{animation:resultsIn .9s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes resultsIn{to{opacity:1;transform:scale(1);filter:blur(0)}}
+.results-head{text-align:center;align-self:start}
+.results-kicker{font-size:12px;font-weight:700;letter-spacing:6px;color:var(--gold)}
+.results-title{margin-top:8px;font-size:46px;font-weight:700;letter-spacing:4px;
+  background:linear-gradient(135deg,#fff 16%,var(--gold) 50%,#fff 84%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 28px rgba(245,217,126,.28))}
+.matchup-grid{align-self:center;width:min(1180px,100%);margin:0 auto;display:grid;grid-template-columns:1fr;gap:10px}
+.matchup-card{position:relative;min-width:0;display:grid;grid-template-columns:minmax(150px,220px) 1fr minmax(150px,220px);
+  align-items:center;gap:18px;min-height:116px;padding:8px 14px;border-radius:14px;
+  border:1px solid rgba(255,255,255,.1);background:linear-gradient(90deg,rgba(88,180,255,.09),rgba(4,8,18,.58) 32%,rgba(4,8,18,.58) 68%,rgba(255,77,106,.09));
+  box-shadow:0 18px 50px rgba(0,0,0,.24);animation:matchupRise .6s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--rise-delay)}
+@keyframes matchupRise{0%{opacity:0;transform:translateY(26px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+.result-pick-card{position:relative;height:100px;min-width:0;overflow:hidden;border-radius:12px;
+  border:1px solid rgba(255,255,255,.12);background:rgba(4,8,18,.7);isolation:isolate;
+  animation:pickCardPlace .72s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--rise-delay) + var(--side-delay))}
+.result-pick-card::before{content:'';position:absolute;inset:-8%;z-index:-2;background-image:var(--pick-img);
+  background-size:cover;background-position:var(--face-pos,50% 15%);filter:saturate(1.12) contrast(1.05)}
+.result-pick-card::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.78))}
+.result-pick-card.blue{--side-delay:80ms;transform-origin:right center;box-shadow:0 0 24px rgba(88,180,255,.14)}
+.result-pick-card.red{--side-delay:170ms;transform-origin:left center;box-shadow:0 0 24px rgba(255,77,106,.14)}
+@keyframes pickCardPlace{
+  0%{opacity:0;filter:blur(10px) brightness(1.6);transform:translateX(var(--enter-x)) translateY(-8px) rotate(var(--enter-r)) scale(.86)}
+  100%{opacity:1;filter:blur(0) brightness(1);transform:translateX(0) translateY(0) rotate(0) scale(1)}
+}
+.result-pick-card.blue{--enter-x:-80px;--enter-r:-5deg}
+.result-pick-card.red{--enter-x:80px;--enter-r:5deg}
+.match-lane{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;
+  padding:4px 10px;border:1px solid rgba(245,217,126,.34);border-radius:999px;
+  color:var(--gold);font-size:10px;font-weight:700;letter-spacing:3px;background:rgba(4,8,18,.76)}
+.match-champ{position:absolute;left:10px;right:10px;bottom:25px;font-size:22px;font-weight:700;line-height:1.05;
+  text-shadow:0 3px 16px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.match-player{position:absolute;left:10px;right:10px;bottom:9px;font-size:11px;font-weight:700;color:#c6d5ee;
+  text-shadow:0 2px 10px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.result-pick-card.red .match-champ,.result-pick-card.red .match-player{text-align:right}
+.rate-panel{position:relative;min-width:0;display:grid;grid-template-rows:auto auto auto;align-items:center;justify-items:center;gap:8px}
+.match-vs{color:#fff;font-size:28px;font-weight:700;line-height:1;text-shadow:0 0 18px rgba(245,217,126,.55)}
+.rate-bar{width:min(440px,100%);height:14px;border-radius:999px;overflow:hidden;background:rgba(255,77,106,.72);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.rate-fill{height:100%;width:var(--blue-rate);background:linear-gradient(90deg,#58b4ff,#9bd7ff)}
+.rate-numbers{width:min(440px,100%);display:flex;justify-content:space-between;
+  font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.rate-numbers .blue-rate{color:#9bd7ff}.rate-numbers .red-rate{color:#ff9aad}
+.results-foot{text-align:center;color:#8396b6;font-size:12px;font-weight:700;letter-spacing:3px}
+@media (max-width:900px){
+  .matchup-results{padding:26px 18px 22px}
+  .results-kicker{font-size:10px;letter-spacing:4px}
+  .results-title{font-size:32px;letter-spacing:2px;line-height:1.12}
+  .matchup-grid{align-self:stretch;gap:8px;margin-top:12px}
+  .matchup-card{grid-template-columns:1fr 100px 1fr;gap:8px;min-height:94px;padding:7px}
+  .result-pick-card{height:80px;border-radius:10px}
+  .match-lane{top:7px;font-size:9px;letter-spacing:2px;padding:3px 7px}
+  .match-champ{left:8px;right:8px;bottom:22px;font-size:16px}
+  .match-player{left:8px;right:8px;bottom:7px;font-size:9px}
+  .rate-panel{gap:5px}
+  .match-vs{font-size:15px;line-height:1}
+  .rate-numbers{width:100%;font-size:12px}
+  .rate-bar{width:100%;height:8px}
+  .results-foot{font-size:10px;letter-spacing:2px}
+}
+
+/* ====================================================
+   CINEMA — 전체 재설계
+   Total duration: 4.8s
+   0–8%   : 입장 (0–0.38s)
+   8–20%  : ban=크랙 / pick=충격파+레이
+   20–22% : 플래시 임팩트
+   22–80% : 메인 (ban=파편비산 / pick=글로우 유지)
+   80–100%: 퇴장
+==================================================== */
+.cinema{position:fixed;inset:0;z-index:20;pointer-events:none;
+  display:grid;place-items:center;opacity:0}
+.cinema.on{animation:cFade 4.8s ease forwards}
+@keyframes cFade{
+  0%{opacity:0;backdrop-filter:blur(0)}
+  6%{opacity:1;backdrop-filter:blur(5px)}
+  78%{opacity:1}
+  100%{opacity:0;backdrop-filter:blur(0)}}
+
+/* 카드 래퍼 */
+.c-wrap{position:relative;width:380px;height:630px}
+
+/* 충격파 링 (픽 전용) */
+.c-ring{position:absolute;left:50%;top:42%;border-radius:50%;
+  width:60px;height:60px;margin-left:-30px;margin-top:-30px;
+  border:3px solid transparent;opacity:0;pointer-events:none}
+.pick-blue.on .c-ring{border-color:rgba(88,180,255,.9);animation:ringExpand 1.1s ease-out forwards}
+.pick-red.on .c-ring{border-color:rgba(255,77,106,.9);animation:ringExpand 1.1s ease-out forwards}
+.c-ring.r2{animation-delay:.18s!important}
+.c-ring.r3{animation-delay:.36s!important}
+@keyframes ringExpand{
+  0%{transform:scale(0);opacity:1;border-width:5px}
+  40%{opacity:.6}
+  100%{transform:scale(18);opacity:0;border-width:1px}}
+
+/* 메인 카드 — overflow:visible 로 파편이 바깥으로 날아감 */
+.cinema-card{position:absolute;inset:0;border-radius:26px;overflow:visible;
+  border:1px solid rgba(255,255,255,.18)}
+/* 배경 클립 영역 — 둥근 모서리 안에서만 스플래시/이펙트 렌더 */
+.c-card-clip{position:absolute;inset:0;overflow:hidden;border-radius:26px}
+
+/* 픽 입장 */
+.pick-blue.on .cinema-card,.pick-red.on .cinema-card{animation:pickEntry 4.8s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes pickEntry{
+  0%{transform:translateY(130px) scale(.6);filter:blur(28px) brightness(2.5);opacity:0}
+  7%{transform:translateY(-14px) scale(1.07);filter:blur(0) brightness(1.6);opacity:1}
+  14%{transform:translateY(0) scale(1);filter:blur(0) brightness(1.12)}
+  74%{transform:translateY(0) scale(1);filter:blur(0) brightness(1);opacity:1}
+  100%{transform:translateY(-55px) scale(1.35);filter:blur(22px) brightness(1.6);opacity:0}}
+
+/* 밴 입장 */
+.ban-mode.on .cinema-card{animation:banEntry 4.8s ease forwards}
+@keyframes banEntry{
+  0%{transform:scale(.75);filter:blur(18px) brightness(.4);opacity:0}
+  7%{transform:scale(1.03);filter:blur(0) brightness(.78);opacity:1}
+  13%{transform:scale(1);filter:blur(0) brightness(.78)}
+  62%{filter:blur(0) brightness(.78);opacity:1}
+  80%{opacity:0}
+  100%{opacity:0}}
+
+/* 블러 배경 (빈 여백 채우기) */
+.c-splash-bg{position:absolute;inset:-12px;
+  background-image:var(--cS);background-size:cover;background-position:center 15%;
+  filter:blur(22px) saturate(1.7) brightness(.38);transform:scale(1.05)}
+.ban-mode .c-splash-bg{filter:blur(22px) saturate(.3) brightness(.22)}
+
+/* 샤프 원본 (contain → 챔피언 전체가 잘리지 않음) */
+.c-splash{position:absolute;inset:0;
+  background-image:var(--cS);background-size:contain;
+  background-position:var(--face-pos,50% 8%);background-repeat:no-repeat}
+.ban-mode .c-splash{filter:saturate(.22) brightness(.68) contrast(1.08)}
+
+/* 사이드 글로우 */
+.c-glow{position:absolute;inset:0;opacity:0;pointer-events:none}
+.pick-blue .c-glow{background:linear-gradient(180deg,rgba(88,180,255,.22),transparent 48%);opacity:1}
+.pick-red .c-glow{background:linear-gradient(180deg,rgba(255,77,106,.22),transparent 48%);opacity:1}
+
+/* 픽 레이 (코닉 그라데이션) */
+.c-rays{position:absolute;inset:-120%;opacity:0;mix-blend-mode:screen;pointer-events:none;border-radius:50%}
+.pick-blue.on .c-rays{
+  background:conic-gradient(from 0deg at 50% 38%,
+    transparent 0deg,rgba(88,180,255,.55) 4deg,transparent 8deg,
+    transparent 32deg,rgba(88,180,255,.4) 36deg,transparent 40deg,
+    transparent 62deg,rgba(88,180,255,.5) 66deg,transparent 70deg,
+    transparent 92deg,rgba(88,180,255,.35) 96deg,transparent 100deg,
+    transparent 122deg,rgba(88,180,255,.45) 126deg,transparent 130deg,
+    transparent 154deg,rgba(88,180,255,.3) 158deg,transparent 162deg,
+    transparent 185deg,rgba(88,180,255,.52) 189deg,transparent 193deg,
+    transparent 218deg,rgba(88,180,255,.38) 222deg,transparent 226deg,
+    transparent 250deg,rgba(88,180,255,.46) 254deg,transparent 258deg,
+    transparent 282deg,rgba(88,180,255,.3) 286deg,transparent 290deg,
+    transparent 316deg,rgba(88,180,255,.5) 320deg,transparent 324deg);
+  animation:raysOut 4.8s ease forwards}
+.pick-red.on .c-rays{
+  background:conic-gradient(from 0deg at 50% 38%,
+    transparent 0deg,rgba(255,77,106,.55) 4deg,transparent 8deg,
+    transparent 32deg,rgba(255,77,106,.4) 36deg,transparent 40deg,
+    transparent 62deg,rgba(255,77,106,.5) 66deg,transparent 70deg,
+    transparent 92deg,rgba(255,77,106,.35) 96deg,transparent 100deg,
+    transparent 122deg,rgba(255,77,106,.45) 126deg,transparent 130deg,
+    transparent 154deg,rgba(255,77,106,.3) 158deg,transparent 162deg,
+    transparent 185deg,rgba(255,77,106,.52) 189deg,transparent 193deg,
+    transparent 218deg,rgba(255,77,106,.38) 222deg,transparent 226deg,
+    transparent 250deg,rgba(255,77,106,.46) 254deg,transparent 258deg,
+    transparent 282deg,rgba(255,77,106,.3) 286deg,transparent 290deg,
+    transparent 316deg,rgba(255,77,106,.5) 320deg,transparent 324deg);
+  animation:raysOut 4.8s ease forwards}
+@keyframes raysOut{
+  0%,6%{opacity:0;transform:scale(.05) rotate(-8deg)}
+  9%{opacity:1;transform:scale(.6) rotate(0)}
+  16%{opacity:.9;transform:scale(1.15) rotate(5deg)}
+  38%{opacity:.35;transform:scale(1.7) rotate(14deg)}
+  58%{opacity:0;transform:scale(2.2) rotate(20deg)}
+  100%{opacity:0}}
+
+/* === 크랙 SVG (밴 전용) === */
+.c-crack{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
+.c-crack line,.c-crack polyline{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.c-crack .cl{stroke:rgba(255,48,80,.9);stroke-width:1.4;
+  stroke-dasharray:500;stroke-dashoffset:500}
+.c-crack .cw{stroke:rgba(255,255,255,.55);stroke-width:.7;
+  stroke-dasharray:500;stroke-dashoffset:500}
+.ban-mode.on .c-crack .cl,.ban-mode.on .c-crack .cw{animation:crackDraw 4.8s ease forwards}
+.ban-mode.on .c-crack .cl:nth-child(2){animation-delay:.04s}
+.ban-mode.on .c-crack .cl:nth-child(3){animation-delay:.08s}
+.ban-mode.on .c-crack .cl:nth-child(4){animation-delay:.06s}
+.ban-mode.on .c-crack .cl:nth-child(5){animation-delay:.1s}
+.ban-mode.on .c-crack .cl:nth-child(6){animation-delay:.03s}
+.ban-mode.on .c-crack .cl:nth-child(7){animation-delay:.07s}
+.ban-mode.on .c-crack .cl:nth-child(8){animation-delay:.05s}
+.ban-mode.on .c-crack .cl:nth-child(9){animation-delay:.09s}
+.ban-mode.on .c-crack .cw{animation-delay:.02s}
+@keyframes crackDraw{
+  0%,7%{stroke-dashoffset:500;opacity:0}
+  8%{opacity:1}
+  18%{stroke-dashoffset:0;opacity:1}
+  22%{opacity:0}
+  100%{opacity:0}}
+
+/* === 유리 파편 (밴 전용) === */
+.c-shard{position:absolute;inset:-6%;
+  background-image:var(--cS);background-size:cover;background-position:center 12%;
+  filter:saturate(.2) brightness(.7);opacity:0;will-change:transform,opacity}
+.ban-mode.on .c-shard{animation:shardFly 4.8s cubic-bezier(.22,.9,.16,1) forwards}
+/* 파편별 지연 — 약간 스태거로 자연스럽게 */
+.ban-mode.on .c-shard.s2{animation-delay:.012s}
+.ban-mode.on .c-shard.s3{animation-delay:.024s}
+.ban-mode.on .c-shard.s4{animation-delay:.018s}
+.ban-mode.on .c-shard.s5{animation-delay:.006s}
+.ban-mode.on .c-shard.s6{animation-delay:.03s}
+.ban-mode.on .c-shard.s7{animation-delay:.015s}
+.ban-mode.on .c-shard.s8{animation-delay:.009s}
+.ban-mode.on .c-shard.s9{animation-delay:.021s}
+.ban-mode.on .c-shard.s10{animation-delay:.027s}
+.ban-mode.on .c-shard.s11{animation-delay:.033s}
+.ban-mode.on .c-shard.s12{animation-delay:.014s}
+.ban-mode.on .c-shard.s13{animation-delay:.022s}
+.ban-mode.on .c-shard.s14{animation-delay:.008s}
+.ban-mode.on .c-shard.s15{animation-delay:.028s}
+.ban-mode.on .c-shard.s16{animation-delay:.017s}
+.ban-mode.on .c-shard.s17{animation-delay:.025s}
+.ban-mode.on .c-shard.s18{animation-delay:.011s}
+.ban-mode.on .c-shard.s19{animation-delay:.019s}
+.ban-mode.on .c-shard.s20{animation-delay:.032s}
+.ban-mode.on .c-shard.s21{animation-delay:.007s}
+.ban-mode.on .c-shard.s22{animation-delay:.023s}
+@keyframes shardFly{
+  0%,19%{transform:translate(0,0) rotate(0) scale(1);opacity:0}
+  21%{opacity:1;transform:translate(0,0) rotate(0) scale(1);filter:saturate(.2) brightness(2.2)}
+  26%{transform:translate(calc(var(--tx)*.07),calc(var(--ty)*.07)) rotate(calc(var(--rot)*.05)) scale(1.04);opacity:1;filter:saturate(.2) brightness(1.4)}
+  50%{transform:translate(calc(var(--tx)*.78),calc(var(--ty)*.78)) rotate(calc(var(--rot)*.86)) scale(var(--sc));opacity:.85;filter:saturate(.35) brightness(.9) blur(0px)}
+  76%{transform:translate(calc(var(--tx)*1.05),calc(var(--ty)*1.05)) rotate(var(--rot)) scale(calc(var(--sc)*.78));opacity:0;filter:blur(14px) saturate(.5)}
+  100%{opacity:0}}
+
+/* 파편 클립패스 + 궤적 */
+.c-shard.s1{clip-path:polygon(0 0,33% 0,20% 30%,0 42%);--tx:-360px;--ty:-250px;--rot:-52deg;--sc:.68}
+.c-shard.s2{clip-path:polygon(33% 0,62% 0,48% 28%,20% 30%);--tx:-75px;--ty:-320px;--rot:36deg;--sc:.62}
+.c-shard.s3{clip-path:polygon(62% 0,100% 0,100% 34%,48% 28%);--tx:300px;--ty:-240px;--rot:60deg;--sc:.66}
+.c-shard.s4{clip-path:polygon(0 42%,20% 30%,35% 58%,0 70%);--tx:-410px;--ty:-30px;--rot:42deg;--sc:.64}
+.c-shard.s5{clip-path:polygon(20% 30%,48% 28%,52% 57%,35% 58%);--tx:-55px;--ty:70px;--rot:-28deg;--sc:.54}
+.c-shard.s6{clip-path:polygon(48% 28%,100% 34%,78% 64%,52% 57%);--tx:370px;--ty:18px;--rot:-48deg;--sc:.66}
+.c-shard.s7{clip-path:polygon(0 70%,35% 58%,28% 100%,0 100%);--tx:-340px;--ty:300px;--rot:56deg;--sc:.7}
+.c-shard.s8{clip-path:polygon(35% 58%,52% 57%,55% 100%,28% 100%);--tx:22px;--ty:360px;--rot:-46deg;--sc:.64}
+.c-shard.s9{clip-path:polygon(52% 57%,78% 64%,100% 100%,55% 100%);--tx:310px;--ty:310px;--rot:50deg;--sc:.68}
+.c-shard.s10{clip-path:polygon(100% 34%,100% 100%,78% 64%);--tx:440px;--ty:110px;--rot:68deg;--sc:.56}
+.c-shard.s11{clip-path:polygon(12% 8%,23% 30%,8% 42%,0 18%);--tx:-310px;--ty:-130px;--rot:-70deg;--sc:.48}
+.c-shard.s12{clip-path:polygon(25% 3%,39% 0,34% 25%,23% 30%);--tx:-155px;--ty:-380px;--rot:58deg;--sc:.46}
+.c-shard.s13{clip-path:polygon(41% 0,58% 6%,48% 28%,34% 25%);--tx:55px;--ty:-400px;--rot:-54deg;--sc:.44}
+.c-shard.s14{clip-path:polygon(66% 3%,84% 0,76% 30%,58% 6%);--tx:220px;--ty:-350px;--rot:72deg;--sc:.5}
+.c-shard.s15{clip-path:polygon(84% 0,100% 16%,94% 38%,76% 30%);--tx:420px;--ty:-150px;--rot:80deg;--sc:.48}
+.c-shard.s16{clip-path:polygon(8% 42%,25% 47%,18% 70%,0 64%);--tx:-450px;--ty:80px;--rot:62deg;--sc:.46}
+.c-shard.s17{clip-path:polygon(25% 47%,43% 40%,52% 57%,35% 58%);--tx:-160px;--ty:150px;--rot:-58deg;--sc:.4}
+.c-shard.s18{clip-path:polygon(52% 57%,68% 44%,78% 64%,62% 75%);--tx:180px;--ty:140px;--rot:60deg;--sc:.42}
+.c-shard.s19{clip-path:polygon(78% 64%,94% 38%,100% 68%,88% 82%);--tx:460px;--ty:100px;--rot:-66deg;--sc:.48}
+.c-shard.s20{clip-path:polygon(18% 70%,35% 58%,28% 100%,8% 92%);--tx:-400px;--ty:380px;--rot:-76deg;--sc:.5}
+.c-shard.s21{clip-path:polygon(43% 70%,62% 75%,55% 100%,32% 100%);--tx:-18px;--ty:440px;--rot:78deg;--sc:.48}
+.c-shard.s22{clip-path:polygon(62% 75%,88% 82%,100% 100%,55% 100%);--tx:380px;--ty:400px;--rot:-70deg;--sc:.5}
+
+/* 임팩트 플래시 */
+.c-flash{position:absolute;inset:0;z-index:5;pointer-events:none;
+  background:radial-gradient(circle at 50% 40%,#fff,rgba(255,255,255,.5) 35%,transparent 65%);
+  opacity:0}
+.ban-mode.on .c-flash{animation:flashBan 4.8s ease forwards}
+.pick-blue.on .c-flash,.pick-red.on .c-flash{animation:flashPick 4.8s ease forwards}
+@keyframes flashBan{0%,19%{opacity:0}21%{opacity:1}25%{opacity:0}100%{opacity:0}}
+@keyframes flashPick{0%,6%{opacity:0}8.5%{opacity:.9}13%{opacity:0}100%{opacity:0}}
+
+/* 보조 외부 플래시 (카드 바깥 번쩍임) */
+.c-outer-flash{position:fixed;inset:0;z-index:19;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 50% 46%,rgba(255,255,255,.28),transparent 50%)}
+.ban-mode.on .c-outer-flash{animation:outerFlash 4.8s ease forwards}
+.pick-blue.on .c-outer-flash{animation:outerFlashPick 4.8s ease forwards;
+  background:radial-gradient(circle at 50% 46%,rgba(88,180,255,.32),transparent 50%)}
+.pick-red.on .c-outer-flash{animation:outerFlashPick 4.8s ease forwards;
+  background:radial-gradient(circle at 50% 46%,rgba(255,77,106,.32),transparent 50%)}
+@keyframes outerFlash{0%,19%{opacity:0}21%{opacity:1}28%{opacity:0}100%{opacity:0}}
+@keyframes outerFlashPick{0%,6%{opacity:0}9%{opacity:1}16%{opacity:0}100%{opacity:0}}
+
+/* 밴 빨간 빛 (충격 직전 긴장감) */
+.c-red-pulse{position:absolute;inset:0;z-index:2;pointer-events:none;
+  background:radial-gradient(circle at 50% 40%,rgba(255,48,80,.55),transparent 60%);opacity:0}
+.ban-mode.on .c-red-pulse{animation:redPulse 4.8s ease forwards}
+@keyframes redPulse{0%,7%{opacity:0}14%{opacity:.7}20%{opacity:0}100%{opacity:0}}
+
+/* 그라데이션 베일 */
+.c-veil{position:absolute;inset:0;z-index:1;
+  background:linear-gradient(180deg,transparent 18%,rgba(0,0,0,.08) 50%,rgba(0,0,0,.9))}
+
+/* 스탬프 — c-wrap 레벨, 카드 양옆으로 넘침 */
+.c-stamp{position:absolute;left:-140px;right:-140px;top:50%;
+  transform:translateY(-50%) rotate(-8deg);
+  text-align:center;z-index:10;opacity:0;pointer-events:none;
+  padding:10px 0;
+  border-top:4px solid transparent;border-bottom:4px solid transparent;
+  letter-spacing:10px;font-size:64px;font-weight:700}
+.c-stamp.spick{border-color:rgba(255,255,255,.7);color:#fff;
+  text-shadow:0 0 30px var(--stampGlow,#fff),0 3px 0 rgba(0,0,0,.7)}
+.c-stamp.sban{border-color:rgba(255,48,80,.8);color:#ff3050;
+  text-shadow:0 0 30px rgba(255,48,80,.9),0 0 60px rgba(255,48,80,.5),0 3px 0 rgba(0,0,0,.8)}
+.pick-blue{--stampGlow:rgba(88,180,255,.9)}.pick-red{--stampGlow:rgba(255,77,106,.9)}
+.pick-blue.on .c-stamp.spick,.pick-red.on .c-stamp.spick{animation:stampPick 4.8s ease forwards}
+.ban-mode.on .c-stamp.sban{animation:stampBan 4.8s ease forwards}
+@keyframes stampPick{
+  0%,8%{opacity:0;transform:translateY(calc(-50% - 55px)) rotate(-6deg) scale(.7)}
+  10%{opacity:1;transform:translateY(calc(-50% + 5px)) rotate(-6deg) scale(1.1);filter:brightness(2)}
+  12%{transform:translateY(-50%) rotate(-6deg) scale(.95);filter:brightness(1)}
+  14%{transform:translateY(-50%) rotate(-6deg) scale(1)}
+  68%{opacity:1}78%{opacity:0}100%{opacity:0}}
+@keyframes stampBan{
+  0%,21%{opacity:0;transform:translateY(calc(-50% - 55px)) rotate(-8deg) scale(.7)}
+  23%{opacity:1;transform:translateY(calc(-50% + 5px)) rotate(-8deg) scale(1.1);filter:brightness(2.5)}
+  25%{transform:translateY(-50%) rotate(-8deg) scale(.95);filter:brightness(1)}
+  27%{transform:translateY(-50%) rotate(-8deg) scale(1)}
+  58%{opacity:1}70%{opacity:0}100%{opacity:0}}
+
+/* 챔피언 이름 + 플레이어 */
+.c-info{position:absolute;left:22px;right:22px;bottom:26px;z-index:3;text-align:center}
+.c-champ{font-size:36px;font-weight:700;letter-spacing:1px;
+  background:linear-gradient(135deg,#fff,var(--gold));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 18px rgba(245,217,126,.4))}
+.c-player{margin-top:8px;font-size:13px;font-weight:700;letter-spacing:4px;color:var(--gold)}
+.ban-mode .c-champ{background:linear-gradient(135deg,#ff8f9e,#ff3050);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 14px rgba(255,48,80,.5))}
+.ban-mode .c-player{color:#ff8f9e}
+
+/* 카드 글로우 테두리 (픽 전용) */
+.c-border-glow{position:absolute;inset:0;border-radius:26px;z-index:6;pointer-events:none;opacity:0}
+.pick-blue.on .c-border-glow{
+  box-shadow:inset 0 0 0 2px rgba(88,180,255,.7),0 0 50px rgba(88,180,255,.3),0 0 100px rgba(88,180,255,.15);
+  animation:borderGlow 4.8s ease forwards}
+.pick-red.on .c-border-glow{
+  box-shadow:inset 0 0 0 2px rgba(255,77,106,.7),0 0 50px rgba(255,77,106,.3),0 0 100px rgba(255,77,106,.15);
+  animation:borderGlow 4.8s ease forwards}
+@keyframes borderGlow{
+  0%,7%{opacity:0}14%{opacity:1}72%{opacity:.7}82%{opacity:0}100%{opacity:0}}
+
+/* 파티클 캔버스 (cinema용) */
+#burstCanvas{position:fixed;inset:0;z-index:19;pointer-events:none;opacity:0}
+#burstCanvas.on{opacity:1}
+</style>
+</head>
+<body>
+
+<audio id="bgm" src="/bgm.mp3" loop preload="auto"></audio>
+<div id="audioUnlock">🔊 오디오 활성화</div>
+
+<canvas id="particleCanvas"></canvas>
+<canvas id="burstCanvas"></canvas>
+<div class="bg-layer"></div>
+<div class="bg-grid"></div>
+<div class="bg-vignette"></div>
+<div class="scanlines"></div>
+
+<div class="corner tl"></div><div class="corner tr"></div>
+<div class="corner bl"></div><div class="corner br"></div>
+<div class="eline blue" id="blueEnergy"></div>
+<div class="eline red" id="redEnergy"></div>
+<div class="sweep" id="sweep"></div>
+
+<!-- CINEMA -->
+<div class="cinema" id="cinema">
+  <div class="c-outer-flash"></div>
+  <div class="c-wrap">
+    <div class="c-ring r1"></div><div class="c-ring r2"></div><div class="c-ring r3"></div>
+    <div class="c-rays"></div>
+    <div class="cinema-card">
+      <!-- ① 클립 영역: 배경·이펙트만 rounded clip 안에 가둠 -->
+      <div class="c-card-clip">
+        <div class="c-splash-bg"></div>
+        <div class="c-splash"></div>
+        <div class="c-glow"></div>
+        <div class="c-red-pulse"></div>
+        <!-- 크랙 SVG -->
+        <svg class="c-crack" viewBox="0 0 380 630" preserveAspectRatio="none">
+          <polyline class="cl" points="190,252 95,126 38,52"/>
+          <polyline class="cl" points="190,252 148,80 138,0"/>
+          <polyline class="cl" points="190,252 248,72 270,0"/>
+          <polyline class="cl" points="190,252 310,142 380,88"/>
+          <polyline class="cl" points="190,252 358,218 380,230"/>
+          <polyline class="cl" points="190,252 370,370 380,420"/>
+          <polyline class="cl" points="190,252 298,430 340,630"/>
+          <polyline class="cl" points="190,252 210,480 200,630"/>
+          <polyline class="cl" points="190,252 108,440 60,630"/>
+          <polyline class="cl" points="190,252 18,368 0,420"/>
+          <polyline class="cl" points="190,252 10,188 0,160"/>
+          <polyline class="cl" points="120,168 80,130"/>
+          <polyline class="cl" points="160,105 142,60"/>
+          <polyline class="cl" points="238,95 258,44"/>
+          <polyline class="cl" points="290,168 338,140"/>
+          <polyline class="cl" points="340,290 370,272"/>
+          <polyline class="cl" points="270,390 310,420"/>
+          <polyline class="cl" points="110,390 62,440"/>
+          <polyline class="cl" points="40,280 8,252"/>
+          <polyline class="cw" points="190,252 95,126 38,52"/>
+          <polyline class="cw" points="190,252 248,72 270,0"/>
+          <polyline class="cw" points="190,252 310,142 380,88"/>
+          <polyline class="cw" points="190,252 108,440 60,630"/>
+        </svg>
+        <div class="c-flash"></div>
+        <div class="c-veil"></div>
+        <div class="c-info">
+          <div class="c-champ" id="cChamp">아트록스</div>
+          <div class="c-player" id="cPlayer">PICK LOCKED</div>
+        </div>
+        <div class="c-border-glow"></div>
+      </div>
+      <!-- ② 파편: cinema-card overflow:visible 로 카드 밖으로 날아감 -->
+      <div class="c-shard s1"></div><div class="c-shard s2"></div><div class="c-shard s3"></div>
+      <div class="c-shard s4"></div><div class="c-shard s5"></div><div class="c-shard s6"></div>
+      <div class="c-shard s7"></div><div class="c-shard s8"></div><div class="c-shard s9"></div>
+      <div class="c-shard s10"></div><div class="c-shard s11"></div><div class="c-shard s12"></div>
+      <div class="c-shard s13"></div><div class="c-shard s14"></div><div class="c-shard s15"></div>
+      <div class="c-shard s16"></div><div class="c-shard s17"></div><div class="c-shard s18"></div>
+      <div class="c-shard s19"></div><div class="c-shard s20"></div><div class="c-shard s21"></div>
+      <div class="c-shard s22"></div>
+    </div>
+    <!-- ③ 스탬프: c-wrap 레벨, left/right -140px 로 카드 양옆을 침범 -->
+    <div class="c-stamp spick" id="cStampPick">LOCKED IN</div>
+    <div class="c-stamp sban" id="cStampBan">BANNED</div>
+  </div>
+</div>
+
+<!-- 완료 -->
+<div class="complete" id="complete">
+  <div><b>밴픽완료</b><span>DRAFT COMPLETE</span></div>
+</div>
+
+<section class="matchup-results" id="matchupResults" aria-hidden="true">
+  <div class="results-head">
+    <div class="results-kicker">POST DRAFT REPORT</div>
+    <div class="results-title">챔피언 VS 챔피언 승률</div>
+  </div>
+  <div class="matchup-grid" id="matchupGrid"></div>
+  <div class="results-foot">LANE MATCHUP WIN RATE</div>
+</section>
+
+<!-- 아레나 -->
+<main class="arena">
+  <header class="hud">
+    <div class="side-title blue"><span class="side-orb"></span>BLUE TEAM</div>
+    <div class="brand">
+      <div class="brand-eyebrow">DAVIDO INHOUSE</div>
+      <div class="brand-title" id="brandTitle">CHAMPION SELECT</div>
+      <div class="brand-line"></div>
+      <div class="brand-sub" id="brandSub">DRAFT IN PROGRESS</div>
+    </div>
+    <div class="side-title red right">RED TEAM <span class="side-orb"></span></div>
+  </header>
+
+  <div class="main">
+    <div class="team-strip blue-strip" id="blueCards"></div>
+    <div class="center-core">
+      <div class="vs-ring">
+        <svg class="vs-ring-svg" viewBox="0 0 120 120">
+          <defs>
+            <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#58b4ff" stop-opacity="0"/>
+              <stop offset="28%" stop-color="#58b4ff" stop-opacity=".8"/>
+              <stop offset="50%" stop-color="#f5d97e"/>
+              <stop offset="72%" stop-color="#ff4d6a" stop-opacity=".8"/>
+              <stop offset="100%" stop-color="#ff4d6a" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="56" fill="none" stroke="url(#rg)" stroke-width="1.5" stroke-dasharray="240 120"/>
+        </svg>
+        <div class="vs-inner"><span class="vs-text">VS</span></div>
+      </div>
+      <div class="phase-box">
+        <div class="phase-lbl" id="phaseLbl">BAN PHASE</div>
+        <div class="phase-name" id="phaseName">블루 금지 중</div>
+        <div class="phase-timer" id="timer">00:30</div>
+      </div>
+    </div>
+    <div class="team-strip red-strip" id="redCards"></div>
+  </div>
+
+  <div class="lower">
+    <div class="ban-panel" id="blueBans"></div>
+    <div class="lower-center"></div>
+    <div class="ban-panel" id="redBans"></div>
+  </div>
+</main>
+
+<div class="toast" id="toast">데모 모드 · 롤 클라이언트 연동 전</div>
+
+<script>
+/* ── 배경 파티클 ── */
+(function(){
+  const cv=document.getElementById('particleCanvas'),ctx=cv.getContext('2d');
+  let W,H,ps=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight}
+  resize();window.addEventListener('resize',resize);
+  function rand(a,b){return a+(b-a)*Math.random()}
+  class P{
+    constructor(){this.reset(true)}
+    reset(i){this.x=rand(0,W);this.y=i?rand(0,H):H+8;
+      this.vy=-rand(.15,.5);this.vx=rand(-.09,.09);
+      this.r=rand(.7,2);this.life=0;this.ml=rand(200,480);
+      const t=Math.random();
+      this.col=t<.45?'rgba(88,180,255,':'t<.75'?'rgba(245,217,126,':'rgba(255,77,106,';
+      if(t<.45)this.col='rgba(88,180,255,';
+      else if(t<.75)this.col='rgba(245,217,126,';
+      else this.col='rgba(255,77,106,';}
+    update(){this.x+=this.vx;this.y+=this.vy;this.life++;
+      if(this.life>this.ml||this.y<-8)this.reset(false)}
+    draw(){const a=Math.sin(this.life/this.ml*Math.PI)*.6;
+      ctx.beginPath();ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+      ctx.fillStyle=this.col+a+')';ctx.fill();}
+  }
+  for(let i=0;i<88;i++)ps.push(new P());
+  (function loop(){ctx.clearRect(0,0,W,H);ps.forEach(p=>{p.update();p.draw()});requestAnimationFrame(loop)})();
+})();
+
+/* ── 버스트 파티클 캔버스 ── */
+const burstCv=document.getElementById('burstCanvas');
+const burstCtx=burstCv.getContext('2d');
+burstCv.width=innerWidth;burstCv.height=innerHeight;
+window.addEventListener('resize',()=>{burstCv.width=innerWidth;burstCv.height=innerHeight});
+let burstParticles=[];
+function spawnBurst(cx,cy,color,count){
+  burstCv.classList.add('on');
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=2+Math.random()*8;
+    const size=1+Math.random()*4;
+    burstParticles.push({x:cx,y:cy,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+      r:size,life:0,maxLife:40+Math.random()*50,color,trail:[]});
+  }
+}
+function animateBurst(){
+  if(!burstParticles.length){burstCv.classList.remove('on');burstCtx.clearRect(0,0,burstCv.width,burstCv.height);return}
+  burstCtx.clearRect(0,0,burstCv.width,burstCv.height);
+  burstParticles=burstParticles.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.12;p.vx*=0.96;p.life++;
+    const a=Math.max(0,1-p.life/p.maxLife);
+    p.trail.push({x:p.x,y:p.y});if(p.trail.length>6)p.trail.shift();
+    if(p.trail.length>1){
+      burstCtx.beginPath();burstCtx.moveTo(p.trail[0].x,p.trail[0].y);
+      p.trail.forEach(t=>burstCtx.lineTo(t.x,t.y));
+      burstCtx.strokeStyle=p.color.replace('A)',a*.5+')');
+      burstCtx.lineWidth=p.r*.5;burstCtx.stroke();
+    }
+    burstCtx.beginPath();burstCtx.arc(p.x,p.y,p.r*a,0,Math.PI*2);
+    burstCtx.fillStyle=p.color.replace('A)',a+')');burstCtx.fill();
+    return p.life<p.maxLife;
+  });
+  requestAnimationFrame(animateBurst);
+}
+
+/* ── 챔피언별 얼굴 기준점 (x% y%) ── */
+const FACE_POS={
+  'Aatrox':'50% 10%','Ahri':'50% 18%','Akali':'48% 18%','Akshan':'50% 20%',
+  'Alistar':'50% 6%','Amumu':'50% 20%','Ambessa':'50% 15%','Annie':'50% 22%',
+  'Aphelios':'50% 15%','Ashe':'50% 14%','Azir':'50% 12%',
+  'Bard':'50% 18%','Blitzcrank':'50% 6%','Brand':'50% 15%','Braum':'50% 8%',
+  'Caitlyn':'42% 18%','Camille':'50% 14%','Cassiopeia':'50% 18%',
+  'ChoGath':'50% 5%','Corki':'50% 18%',
+  'Darius':'50% 10%','Diana':'50% 18%','DrMundo':'50% 12%','Draven':'55% 14%',
+  'Ekko':'50% 20%','Elise':'50% 16%','Evelynn':'50% 20%','Ezreal':'50% 18%',
+  'Fiddlesticks':'50% 10%','Fiora':'50% 16%','Fizz':'50% 22%',
+  'Galio':'50% 6%','Gangplank':'50% 14%','Garen':'50% 10%','Gragas':'50% 8%',
+  'Graves':'50% 14%','Gwen':'50% 18%',
+  'Hecarim':'50% 10%','Heimerdinger':'50% 20%',
+  'Irelia':'50% 14%',
+  'Janna':'50% 20%','JarvanIV':'50% 10%','Jax':'50% 10%','Jayce':'50% 14%',
+  'Jhin':'50% 10%','Jinx':'40% 18%',
+  'KSante':'50% 14%','Kaisa':'50% 18%','Kalista':'50% 14%','Karma':'50% 18%',
+  'Karthus':'50% 16%','Kassadin':'50% 14%','Katarina':'50% 18%','Kayle':'50% 14%',
+  'KhaZix':'50% 14%','Kindred':'50% 18%','Kled':'50% 14%',
+  'LeeSin':'50% 16%','Leona':'50% 14%','Lillia':'50% 20%','Lissandra':'50% 14%',
+  'Lucian':'50% 16%','Lulu':'50% 22%','Lux':'50% 14%',
+  'Malphite':'50% 6%','Malzahar':'50% 14%','Maokai':'50% 8%','MasterYi':'50% 14%',
+  'MissFortune':'50% 18%','Milio':'50% 20%','MonkeyKing':'50% 16%',
+  'Mordekaiser':'50% 6%','Morgana':'50% 14%',
+  'Nami':'50% 20%','Nasus':'50% 10%','Nautilus':'50% 5%','Nidalee':'50% 16%',
+  'Nilah':'50% 18%','Nocturne':'50% 14%','Nunu':'50% 18%',
+  'Olaf':'50% 10%','Orianna':'50% 20%',
+  'Pantheon':'50% 14%','Poppy':'50% 20%','Pyke':'50% 14%',
+  'Quinn':'50% 18%',
+  'Rakan':'50% 16%','RekSai':'50% 10%','Renekton':'50% 8%','Rengar':'50% 14%',
+  'Riven':'50% 16%','Rumble':'50% 10%','Ryze':'50% 14%',
+  'Sejuani':'50% 14%','Senna':'50% 16%','Seraphine':'50% 18%','Sett':'50% 8%',
+  'Shaco':'50% 16%','Shen':'50% 14%','Shyvana':'50% 14%','Singed':'50% 14%',
+  'Sion':'50% 4%','Sivir':'50% 16%','Sona':'50% 20%','Soraka':'50% 18%',
+  'Swain':'50% 14%','Sylas':'50% 16%','Syndra':'50% 16%',
+  'TahmKench':'50% 8%','Taliyah':'50% 18%','Talon':'50% 16%','Taric':'50% 14%',
+  'Teemo':'50% 22%','Thresh':'42% 10%','Tristana':'50% 22%','Trundle':'50% 8%',
+  'Tryndamere':'50% 10%','TwistedFate':'50% 16%','Twitch':'50% 16%',
+  'Udyr':'50% 10%','Urgot':'50% 6%',
+  'Varus':'50% 16%','Vayne':'50% 16%','Veigar':'50% 22%','Vex':'50% 18%',
+  'Vi':'55% 16%','Viktor':'50% 14%','Vladimir':'50% 14%',
+  'Warwick':'50% 8%','Wukong':'50% 16%',
+  'Xayah':'50% 16%','Xerath':'50% 10%','XinZhao':'50% 14%',
+  'Yasuo':'48% 14%','Yone':'50% 14%','Yorick':'50% 10%','Yuumi':'50% 20%',
+  'Zac':'50% 8%','Zed':'50% 14%','Ziggs':'50% 22%','Zilean':'50% 10%',
+  'Zoe':'50% 22%','Zyra':'50% 18%',
+};
+function facePos(name){return FACE_POS[name]||'50% 15%'}
+
+/* ── 유틸 ── */
+const splash=n=>`https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${n}_0.jpg`;
+const isLiveMode=new URLSearchParams(location.search).get('live')==='1';
+let championById=new Map(),lastLiveDraft=null,liveInitialized=false,liveCompleteShown=false;
+let bgmUnlocked=false,bgmInChampSelect=false;
+const fallbackChampions={
+  266:['Aatrox','아트록스'],103:['Ahri','아리'],84:['Akali','아칼리'],799:['Ambessa','암베사'],
+  51:['Caitlyn','케이틀린'],222:['Jinx','징크스'],145:['Kaisa','카이사'],64:['LeeSin','리 신'],
+  236:['Lucian','루시안'],57:['Maokai','마오카이'],76:['Nidalee','니달리'],61:['Orianna','오리아나'],
+  497:['Rakan','라칸'],58:['Renekton','레넥톤'],92:['Riven','리븐'],517:['Sylas','사일러스'],
+  412:['Thresh','쓰레쉬'],254:['Vi','바이'],777:['Yone','요네'],902:['Milio','밀리오'],53:['Blitzcrank','블리츠크랭크'],
+};
+let blue=[['탑','참가자 1','Aatrox','아트록스'],['정글','참가자 2','LeeSin','리 신'],
+  ['미드','참가자 3','Ahri','아리'],['원딜','참가자 4','Jinx','징크스'],['서폿','참가자 5','Thresh','쓰레쉬']];
+let red=[['탑','Pz ZZang','Renekton','레넥톤'],['정글','Just Do it JUG','Vi','바이'],
+  ['미드','Riven','Orianna','오리아나'],['원딜','Derma','Kaisa','카이사'],['서폿','Keria','Rakan','라칸']];
+let blueBans=[['Yone','요네'],['Nidalee','니달리'],['Caitlyn','케이틀린'],['Sylas','사일러스'],['Milio','밀리오']];
+let redBans=[['Ambessa','암베사'],['Maokai','마오카이'],['Lucian','루시안'],['Akali','아칼리'],['Blitzcrank','블리츠크랭크']];
+const $=id=>document.getElementById(id);
+const dname=n=>String(n||'').split('#')[0].trim()||n;
+function laneLabel(lane,idx){
+  const m={top:'탑',jungle:'정글',middle:'미드',bottom:'원딜',utility:'서폿',support:'서폿'};
+  return m[String(lane||'').toLowerCase()]||['탑','정글','미드','원딜','서폿'][idx]||`${idx+1}`;
+}
+function champMeta(id){const n=Number(id||0);if(!n)return['',''];return championById.get(n)||fallbackChampions[n]||[`챔피언${n}`,`챔피언 ${n}`]}
+
+/* ── 렌더 ── */
+function cardHTML(p,i,side){
+  return`<div class="champ-card" data-side="${side}" data-idx="${i}" style="--splash:url('${splash(p[2])}');--face-pos:${facePos(p[2])}">
+    <div class="splash"></div>
+    <div class="lane-badge">${p[0]}</div>
+    <div class="card-info"><div class="card-player">${dname(p[1])}</div><div class="card-champ">${p[3]}</div></div>
+  </div>`;
+}
+function banHTML(p,i,side){
+  return`<div class="ban-slot" data-ban="${side}-${i}" style="--splash:url('${splash(p[0])}')">
+    <div class="ban-slash"></div><span class="ban-name">${p[1]}</span>
+  </div>`;
+}
+function render(){
+  $('blueCards').innerHTML=blue.map((p,i)=>cardHTML(p,i,'blue')).join('');
+  $('redCards').innerHTML=red.map((p,i)=>cardHTML(p,i,'red')).join('');
+  $('blueBans').innerHTML=blueBans.map((p,i)=>banHTML(p,i,'blue')).join('');
+  $('redBans').innerHTML=redBans.map((p,i)=>banHTML(p,i,'red')).join('');
+}
+
+/* ── 상태 ── */
+function setPhase(mode,name){
+  $('phaseLbl').textContent=mode==='ban'?'BAN PHASE':'PICK PHASE';
+  $('phaseName').textContent=name;
+  $('brandTitle').textContent=mode==='ban'?'BAN PHASE':'PICK PHASE';
+}
+function setToast(t){$('toast').textContent=t}
+function pulse(side){
+  const el=$(side==='blue'?'blueEnergy':'redEnergy');
+  el.classList.remove('pulse');void el.offsetWidth;el.classList.add('pulse');
+}
+function runSweep(){$('sweep').classList.remove('on');void $('sweep').offsetWidth;$('sweep').classList.add('on')}
+
+/* ── 시네마 ── */
+let cinemaTimer=null;
+function playCinema({mode,side,pick}){
+  const el=$('cinema');
+  if(cinemaTimer)clearTimeout(cinemaTimer);
+  el.className='cinema';void el.offsetWidth;
+
+  // 스플래시 세팅
+  const url=`url('${splash(pick[2])}')`;
+  el.style.setProperty('--cS',url);
+  el.style.setProperty('--face-pos',facePos(pick[2]));
+  el.querySelectorAll('.c-splash,.c-splash-bg,.c-shard').forEach(d=>{d.style.backgroundImage=`url('${splash(pick[2])}')`});
+
+  $('cChamp').textContent=pick[3];
+  $('cPlayer').textContent=mode==='ban'?'BAN CONFIRMED':dname(pick[1]).toUpperCase();
+
+  if(mode==='ban')el.classList.add('ban-mode');
+  else el.classList.add(side==='blue'?'pick-blue':'pick-red');
+  el.classList.add('on');
+
+  // 버스트 파티클 타이밍
+  const cx=innerWidth/2, cy=innerHeight/2;
+  const burstDelay=mode==='ban'?1020:420;
+  const color=mode==='ban'?'rgba(255,80,100,A)':side==='blue'?'rgba(88,180,255,A)':'rgba(255,77,106,A)';
+  const count=mode==='ban'?120:90;
+  setTimeout(()=>{spawnBurst(cx,cy,color,count);animateBurst()},burstDelay);
+  if(mode==='ban')setTimeout(()=>{spawnBurst(cx,cy,'rgba(255,255,255,A)',40);animateBurst()},1060);
+
+  cinemaTimer=setTimeout(()=>{el.className='cinema'},4900);
+}
+
+function revealBan(side,i){
+  const data=side==='blue'?blueBans[i]:redBans[i];
+  const label=side==='blue'?'블루 금지':'레드 금지';
+  setPhase('ban',`${label} · ${data[1]}`);
+  document.querySelector(`[data-ban="${side}-${i}"]`)?.classList.add('revealed');
+  setToast(`${label} — ${data[1]}`);
+  playCinema({mode:'ban',side,pick:['금지',label,data[0],data[1]]});
+  pulse(side);runSweep();
+}
+function revealPick(side,i){
+  const team=side==='blue'?blue:red;
+  const pick=team[i];
+  document.querySelector(`.champ-card[data-side="${side}"][data-idx="${i}"]`)?.classList.add('revealed');
+  setPhase('pick',`${pick[0]} · ${side==='blue'?'블루':'레드'} 픽`);
+  setToast(`${dname(pick[1])} — ${pick[3]}`);
+  playCinema({mode:'pick',side,pick});
+  pulse(side);runSweep();
+}
+function resetDraftDemo(){
+  matchupRatesPromise=null;
+  document.querySelectorAll('.champ-card,.ban-slot').forEach(el=>{
+    el.classList.remove('revealed');
+    el.style.animation='';
+    el.style.transform='';
+    el.style.opacity='';
+    el.style.filter='';
+  });
+  $('complete').classList.remove('on');
+  $('matchupResults').classList.remove('on');
+  $('matchupResults').setAttribute('aria-hidden','true');
+  document.querySelector('.arena')?.classList.remove('draft-exit','results-ready');
+  setPhase('ban','블루 금지 중');setToast('데모 모드 · 롤 클라이언트 연동 전');
+}
+function hashText(text){
+  let h=0;
+  for(const ch of String(text||''))h=(h*31+ch.charCodeAt(0))>>>0;
+  return h;
+}
+function matchupRate(bluePick,redPick,i){
+  const seed=hashText(`${bluePick?.[2]}:${redPick?.[2]}:${i}`);
+  return Math.max(42,Math.min(58,50+((seed%1700)-850)/100));
+}
+const RESULT_SHOW_DELAY_MS=3120;
+const RESULT_FULL_REVEAL_MS=35000;
+const RESULT_ROW_ANIM_MS=720;
+let matchupRatesPromise=null;
+function matchupLane(lane){
+  const key=String(lane||'').trim().toLowerCase();
+  if(['탑','top'].includes(key))return'top';
+  if(['정글','jungle','jg'].includes(key))return'jungle';
+  if(['미드','mid','middle'].includes(key))return'middle';
+  if(['원딜','바텀','bottom','bot','adc'].includes(key))return'bottom';
+  if(['서폿','서포터','support','sup'].includes(key))return'support';
+  return '';
+}
+async function loadMatchupRate(bp,rp,i){
+  const fallback=matchupRate(bp,rp,i);
+  if(!bp?.[2]||!rp?.[2])return fallback;
+  try{
+    const lane=matchupLane(bp?.[0]||rp?.[0]);
+    const qs=new URLSearchParams({blue:bp[2],red:rp[2]});
+    if(lane)qs.set('lane',lane);
+    const data=await fetch(`/api/matchup-rate?${qs}`).then(r=>r.ok?r.json():null);
+    const rate=Number(data?.blueRate);
+    if(Number.isFinite(rate))return Math.max(1,Math.min(99,rate));
+  }catch(e){}
+  return fallback;
+}
+function matchupRevealDelay(i,total){
+  if(total<=1)return 0;
+  const span=Math.max(0,RESULT_FULL_REVEAL_MS-RESULT_SHOW_DELAY_MS-RESULT_ROW_ANIM_MS);
+  return Math.round(span*(i/(total-1)));
+}
+function prepareMatchupRates(){
+  matchupRatesPromise=Promise.all(blue.map((bp,i)=>loadMatchupRate(bp,red[i],i)));
+  return matchupRatesPromise;
+}
+function matchupHTML(bp,rp,i,total,rate){
+  const br=rate ?? matchupRate(bp,rp,i);
+  const rr=100-br;
+  const lane=bp?.[0]||rp?.[0]||['TOP','JGL','MID','BOT','SUP'][i]||`P${i+1}`;
+  return `<article class="matchup-card" style="--blue-rate:${br.toFixed(1)}%;--rise-delay:${matchupRevealDelay(i,total)}ms">
+    <div class="result-pick-card blue" style="--pick-img:url('${splash(bp?.[2]||'')}');--face-pos:${facePos(bp?.[2]||'')}">
+      <div class="match-lane">${lane}</div>
+      <div class="match-champ">${bp?.[3]||'대기 중'}</div>
+      <div class="match-player">${dname(bp?.[1]||'BLUE')}</div>
+    </div>
+    <div class="rate-panel">
+      <div class="rate-numbers"><span class="blue-rate">${br.toFixed(1)}%</span><span class="red-rate">${rr.toFixed(1)}%</span></div>
+      <div class="match-vs">VS</div>
+      <div class="rate-bar"><div class="rate-fill"></div></div>
+    </div>
+    <div class="result-pick-card red" style="--pick-img:url('${splash(rp?.[2]||'')}');--face-pos:${facePos(rp?.[2]||'')}">
+      <div class="match-lane">${lane}</div>
+      <div class="match-champ">${rp?.[3]||'대기 중'}</div>
+      <div class="match-player">${dname(rp?.[1]||'RED')}</div>
+    </div>
+  </article>`;
+}
+async function showMatchupResults(){
+  const rates=await (matchupRatesPromise||prepareMatchupRates());
+  $('matchupGrid').innerHTML=blue.map((bp,i)=>matchupHTML(bp,red[i],i,blue.length,rates[i])).join('');
+  $('matchupResults').setAttribute('aria-hidden','false');
+  $('matchupResults').classList.remove('on');void $('matchupResults').offsetWidth;$('matchupResults').classList.add('on');
+  setPhase('pick','승률 분석');setToast('챔피언별 라인 매치업 승률');
+}
+function scatterDraftCards(){
+  const cards=[...document.querySelectorAll('.champ-card,.ban-slot')];
+  const rand=(a,b)=>a+(b-a)*Math.random();
+  const signed=()=>Math.random()<.5?-1:1;
+  function randomExit(rect){
+    const centerX=rect.left+rect.width/2;
+    const centerY=rect.top+rect.height/2;
+    const edge=Math.floor(Math.random()*4);
+    let targetX,targetY;
+    if(edge===0){targetX=rand(-innerWidth*.25,innerWidth*1.25);targetY=-rect.height-rand(90,innerHeight*.35)}
+    else if(edge===1){targetX=innerWidth+rect.width+rand(90,innerWidth*.35);targetY=rand(-innerHeight*.15,innerHeight*1.15)}
+    else if(edge===2){targetX=rand(-innerWidth*.25,innerWidth*1.25);targetY=innerHeight+rect.height+rand(90,innerHeight*.35)}
+    else{targetX=-rect.width-rand(90,innerWidth*.35);targetY=rand(-innerHeight*.15,innerHeight*1.15)}
+    return {x:targetX-centerX,y:targetY-centerY};
+  }
+  function bezier(p0,p1,p2,p3,t){
+    const u=1-t,tt=t*t,uu=u*u;
+    const uuu=uu*u,ttt=tt*t;
+    return uuu*p0+3*uu*t*p1+3*u*tt*p2+ttt*p3;
+  }
+  function smoothstep(t){return t*t*(3-2*t)}
+  const flights=cards.map((el,i)=>{
+    const rect=el.getBoundingClientRect();
+    const out=randomExit(rect);
+    const cx1=signed()*rand(innerWidth*.12,innerWidth*.28);
+    const cy1=signed()*rand(innerHeight*.08,innerHeight*.2);
+    const cx2=out.x*.45+signed()*rand(innerWidth*.08,innerWidth*.22);
+    const cy2=out.y*.45+signed()*rand(innerHeight*.08,innerHeight*.22);
+    return {
+      el,out,
+      p1:{x:cx1,y:cy1},
+      p2:{x:cx2,y:cy2},
+      rot:signed()*rand(130,280),
+      wave:signed()*rand(18,54),
+      wave2:signed()*rand(8,28),
+      dur:rand(2050,2550),
+      delay:Math.random()*130,
+      start:performance.now()+Math.random()*130,
+      baseSkew:el.matches('.red-strip .champ-card')?3:el.matches('.champ-card')?-3:0
+    };
+  });
+  cards.forEach((el,i)=>{
+    const baseSkew=el.matches('.red-strip .champ-card')?3:el.matches('.champ-card')?-3:0;
+    el.style.animation='none';
+    el.style.transform=`translate(0,0) skewX(${baseSkew}deg) rotate(0deg) scale(1)`;
+    el.style.opacity='1';
+    el.style.filter='blur(0) brightness(1)';
+  });
+  document.querySelector('.arena')?.classList.add('draft-exit');
+  spawnBurst(innerWidth/2,innerHeight/2,'rgba(245,217,126,A)',70);animateBurst();
+  function frame(now){
+    let running=false;
+    flights.forEach(f=>{
+      const raw=(now-f.start)/f.dur;
+      const t=Math.max(0,Math.min(1,raw));
+      if(t<1)running=true;
+      const e=smoothstep(t);
+      const x=bezier(0,f.p1.x,f.p2.x,f.out.x,e);
+      const y=bezier(0,f.p1.y,f.p2.y,f.out.y,e);
+      const drift=Math.sin(e*Math.PI*2.4)*f.wave*(1-e)+Math.sin(e*Math.PI*5.2)*f.wave2*(1-e);
+      const rot=f.rot*e+Math.sin(e*Math.PI*3)*10*(1-e);
+      const scale=1+.04*Math.sin(e*Math.PI*2)-.45*e;
+      const opacity=e>.78?Math.max(0,1-(e-.78)/.22):1;
+      const blur=e>.78?(e-.78)/.22*12:0;
+      f.el.style.opacity=opacity.toFixed(3);
+      f.el.style.filter=`blur(${blur.toFixed(1)}px) brightness(${(1+.45*e).toFixed(2)})`;
+      f.el.style.transform=`translate(${x.toFixed(1)}px,${(y+drift).toFixed(1)}px) skewX(${f.baseSkew}deg) rotate(${rot.toFixed(1)}deg) scale(${scale.toFixed(3)})`;
+    });
+    if(running)requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+function showComplete(){
+  prepareMatchupRates();
+  setPhase('pick','밴픽 완료');setToast('모든 픽이 완료되었습니다');
+  $('complete').classList.remove('on');void $('complete').offsetWidth;$('complete').classList.add('on');
+  setTimeout(scatterDraftCards,620);
+  setTimeout(()=>document.querySelector('.arena')?.classList.add('results-ready'),2800);
+  setTimeout(showMatchupResults,RESULT_SHOW_DELAY_MS);
+}
+
+/* ── BGM ── */
+function bgmPlay(){const b=$('bgm');if(!b)return;b.currentTime=0;b.play().catch(()=>{})}
+function bgmStop(){const b=$('bgm');if(!b)return;b.pause();b.currentTime=0}
+
+/* ── 챔피언 맵 ── */
+async function loadChampionMap(){
+  try{
+    const v=await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(r=>r.json());
+    const d=await fetch(`https://ddragon.leagueoflegends.com/cdn/${v[0]||'15.10.1'}/data/ko_KR/champion.json`).then(r=>r.json());
+    championById=new Map(Object.values(d.data||{}).map(c=>[Number(c.key),[c.id,c.name]]));
+    if(lastLiveDraft)applyLiveDraft(lastLiveDraft,false);
+  }catch(e){
+    championById=new Map(Object.entries(fallbackChampions).map(([id,v])=>[Number(id),v]));
+  }
+}
+
+/* ── 라이브 드래프트 ── */
+function connectDraftLive(){
+  const proto=location.protocol==='https:'?'wss:':'ws:';
+  const ws=new WebSocket(`${proto}//${location.host}`);
+  ws.onmessage=ev=>{try{const m=JSON.parse(ev.data);
+    if(m.type==='lcu_champ_select')applyLiveDraft(m.data,true);
+    if(m.type==='state'&&m.data?.lcuDraft)applyLiveDraft(m.data.lcuDraft,true);
+  }catch(e){}};
+  ws.onclose=()=>setTimeout(connectDraftLive,1500);
+}
+function liveBlankTeam(s){return Array.from({length:5},(_,i)=>[laneLabel('',i),`${s==='blue'?'참가자':'레드'} ${i+1}`,'','대기 중'])}
+function liveBlankBans(){return Array.from({length:5},()=>['','대기 중'])}
+function applyLiveDraft(draft,animate){
+  lastLiveDraft=draft;
+  const nowCS=!!(draft?.connected&&draft?.inChampSelect&&draft?.session);
+  if(nowCS&&!bgmInChampSelect){bgmInChampSelect=true;if(bgmUnlocked)bgmPlay()}
+  else if(!nowCS&&bgmInChampSelect){bgmInChampSelect=false;bgmStop()}
+  if(!draft?.connected){liveCompleteShown=false;setToast(draft?.error||'롤 클라이언트를 기다리는 중');setPhase('ban','클라이언트 대기');return}
+  if(!draft?.inChampSelect||!draft.session){liveCompleteShown=false;setToast('챔피언 선택 화면 대기 중');setPhase('ban','밴픽 대기');return}
+  const s=draft.session;
+  const nb=liveBlankTeam('blue'),nr=liveBlankTeam('red'),nbb=liveBlankBans(),nrb=liveBlankBans();
+  const completed=(s.actions||[]).filter(a=>a.completed&&a.championId);
+  const bc={blue:0,red:0};
+  (s.blue||[]).forEach((p,i)=>{const m=champMeta(p.championId);nb[i]=[laneLabel(p.lane,i),`참가자 ${i+1}`,m[0],m[1]]});
+  (s.red||[]).forEach((p,i)=>{const m=champMeta(p.championId);nr[i]=[laneLabel(p.lane,i),p.name||`레드 ${i+1}`,m[0],m[1]]});
+  completed.filter(a=>a.type==='ban').forEach(a=>{const m=champMeta(a.championId);const pos=bc[a.side]++;
+    if(a.side==='blue'&&pos<5)nbb[pos]=m;if(a.side==='red'&&pos<5)nrb[pos]=m});
+  blue=nb;red=nr;blueBans=nbb;redBans=nrb;render();
+  completed.filter(a=>a.type==='pick').forEach(a=>{
+    const t=a.side==='blue'?blue:red;
+    if(t[a.idx]?.[3]!=='대기 중')document.querySelector(`.champ-card[data-side="${a.side}"][data-idx="${a.idx}"]`)?.classList.add('revealed')});
+  completed.filter(a=>a.type==='ban').forEach(a=>{
+    const matches=completed.filter(x=>x.type==='ban'&&x.side===a.side);
+    const pos=matches.findIndex(x=>x.id===a.id);
+    if(pos>=0)document.querySelector(`[data-ban="${a.side}-${pos}"]`)?.classList.add('revealed')});
+  const pickCount=completed.filter(a=>a.type==='pick').length;
+  const latest=completed[completed.length-1];
+  const lk=latest?`${latest.id}:${latest.type}:${latest.championId}`:'';
+  if(!applyLiveDraft.seen)applyLiveDraft.seen=new Set();
+  const shouldAnim=animate&&liveInitialized&&latest&&!applyLiveDraft.seen.has(lk);
+  completed.forEach(a=>applyLiveDraft.seen.add(`${a.id}:${a.type}:${a.championId}`));
+  liveInitialized=true;
+  if(shouldAnim){
+    if(latest.type==='ban'){const pos=completed.filter(a=>a.type==='ban'&&a.side===latest.side).findIndex(a=>`${a.id}:${a.type}:${a.championId}`===lk);if(pos>=0)revealBan(latest.side,pos)}
+    else revealPick(latest.side,latest.idx);
+    if(pickCount>=10&&!liveCompleteShown){liveCompleteShown=true;setTimeout(showComplete,5050)}
+  }else{
+    if(pickCount>=10&&!liveCompleteShown){liveCompleteShown=true;showComplete();return}
+    const cur=(s.actions||[]).find(a=>a.inProgress);
+    if(cur)setPhase(cur.type==='ban'?'ban':'pick',`${cur.side==='red'?'레드':'블루'} ${cur.type==='ban'?'금지':'선택'} 중`);
+    setToast('롤 밴픽 화면과 자동 연동 중');
+  }
+}
+
+/* ── 타이머 ── */
+let sec=30;
+setInterval(()=>{$('timer').textContent='00:'+String(sec).padStart(2,'0');sec=sec<=0?30:sec-1},1000);
+
+/* ── 오디오 잠금 해제 ── */
+document.getElementById('audioUnlock').addEventListener('click',()=>{
+  bgmUnlocked=true;document.getElementById('audioUnlock').classList.add('hidden');
+  if(bgmInChampSelect)bgmPlay();
+});
+
+loadChampionMap();
+
+/* ── 데모 / 라이브 ── */
+const sequence=[
+  ['ban','blue',0],['ban','red',0],['ban','blue',1],['ban','red',1],['ban','blue',2],['ban','red',2],
+  ['pick','blue',0],['pick','red',0],['pick','blue',1],['pick','red',1],['pick','blue',2],['pick','red',2],
+  ['pick','blue',3],['pick','red',3],['pick','blue',4],['pick','red',4],['complete','',0]
+];
+let seqIdx=-1;
+let resultHoldTicks=0;
+if(isLiveMode){
+  blue=liveBlankTeam('blue');red=liveBlankTeam('red');
+  blueBans=liveBlankBans();redBans=liveBlankBans();
+  render();setPhase('ban','클라이언트 대기');setToast('롤 클라이언트와 챔피언 선택 화면을 기다리는 중입니다.');
+  connectDraftLive();
+}else{
+  render();
+  setTimeout(()=>{
+    resetDraftDemo();
+    setInterval(()=>{
+      if(resultHoldTicks>0){resultHoldTicks--;return}
+      seqIdx=(seqIdx+1)%sequence.length;
+      if(seqIdx===0){render();resetDraftDemo()}
+      const[type,side,i]=sequence[seqIdx];
+      if(type==='ban')revealBan(side,i);
+      if(type==='pick')revealPick(side,i);
+      if(type==='complete'){showComplete();resultHoldTicks=8}
+    },5200);
+  },1000);
+}
+</script>
+</body>
+</html>
