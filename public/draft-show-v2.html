@@ -163,18 +163,16 @@ html,body{width:100%;height:100%;overflow:hidden;background:#020408;font-family:
 
 /* ── center stage ── */
 #center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative;min-width:0}
-#revealWrap{width:min(235px,100%);aspect-ratio:9/16;border-radius:12px;overflow:hidden;
+#champStage{
+  width:220px;height:391px;
+  border-radius:12px;
+  opacity:0;
+  transition:opacity .4s;
   border:2px solid rgba(200,168,75,.25);
   box-shadow:0 28px 70px rgba(0,0,0,.9),0 0 36px rgba(200,168,75,.12);
-  opacity:0;position:relative}
-#revealWrap img{width:100%;height:100%;object-fit:cover;object-position:center 5%}
-#revealWrap .rovl{position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.78))}
-#revealWrap .rname{position:absolute;bottom:16px;left:0;right:0;text-align:center;
-  font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:3px;
-  text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.9)}
-#revealWrap .rshine{position:absolute;inset:0;
-  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.25) 50%,transparent 70%);
-  transform:translateX(-120%);pointer-events:none}
+  display:block;
+  image-rendering:auto;
+}
 #centerHint{font-family:'Rajdhani',sans-serif;font-size:.88rem;letter-spacing:3px;
   color:rgba(148,163,184,.38);text-align:center;text-transform:uppercase}
 
@@ -303,12 +301,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#020408;font-family:
       <div class="pick-slots" id="bluePicks"></div>
     </div>
     <div id="center">
-      <div id="revealWrap">
-        <img id="revealImg" src="" alt="">
-        <div class="rovl"></div>
-        <div class="rname" id="revealName"></div>
-        <div class="rshine" id="rshine"></div>
-      </div>
+      <canvas id="champStage" width="220" height="391"></canvas>
       <div id="centerHint">챔피언을 선택하세요</div>
     </div>
     <div class="team-panel red">
@@ -602,35 +595,82 @@ function pick(key){
 }
 
 // ════════════════════════════════════════════════
-//  REVEAL ANIMATION
+//  THREE.JS 챔피언 스테이지 (3D 모델 대체)
 // ════════════════════════════════════════════════
+let champR=null,champSc=null,champCam=null,champMesh=null,champTL=null,champLooping=false;
+
+function initChampStage(){
+  if(champR) return;
+  const cv=document.getElementById('champStage');
+  champR=new THREE.WebGLRenderer({canvas:cv,antialias:true,alpha:true});
+  champR.setSize(220,391,false);
+  champR.setPixelRatio(Math.min(devicePixelRatio,2));
+  champR.setClearColor(0x000000,0);
+
+  champSc=new THREE.Scene();
+  champCam=new THREE.PerspectiveCamera(42,220/391,0.1,50);
+  champCam.position.z=3.2;
+
+  champSc.add(new THREE.AmbientLight(0x334466,0.5));
+  champTL=new THREE.PointLight(0x4d9fff,5,18);
+  champTL.position.set(-1.5,2,3);
+  champSc.add(champTL);
+  const rimL=new THREE.PointLight(0x112244,2,12);
+  rimL.position.set(1.5,-1.5,-3);
+  champSc.add(rimL);
+
+  const geo=new THREE.PlaneGeometry(1.8,3.2);
+  const mat=new THREE.MeshPhongMaterial({transparent:true,opacity:0,shininess:80});
+  champMesh=new THREE.Mesh(geo,mat);
+  champSc.add(champMesh);
+
+  if(!champLooping){
+    champLooping=true;
+    (function loop(){
+      requestAnimationFrame(loop);
+      const t=Date.now()*.001;
+      champMesh.rotation.y=Math.sin(t*.38)*.22;
+      champMesh.rotation.x=Math.sin(t*.29)*.07;
+      champMesh.position.y=Math.sin(t*.47)*.09;
+      champTL.intensity=5+Math.sin(t*1.6)*.8;
+      champR.render(champSc,champCam);
+    })();
+  }
+}
+
 function revealChamp(key,team,type,idx,cb){
-  const rw=document.getElementById('revealWrap'),img=document.getElementById('revealImg');
-  const name=document.getElementById('revealName'),shine=document.getElementById('rshine');
-  img.src=splashUrl(key);
-  name.textContent=champByKey[key]?.name||key;
-  rw.style.borderColor=team==='blue'?'rgba(77,159,255,.55)':'rgba(255,100,80,.55)';
-  rw.style.boxShadow=team==='blue'?'0 28px 70px rgba(0,0,0,.9),0 0 45px rgba(77,159,255,.4)':'0 28px 70px rgba(0,0,0,.9),0 0 45px rgba(255,100,80,.4)';
-  gsap.set(rw,{opacity:0,scale:.76,rotateX:18,rotateY:team==='blue'?-10:10});
-  gsap.set(shine,{x:'-120%'});
-  gsap.set(document.getElementById('centerHint'),{opacity:0});
-  const go=()=>{
+  if(!champR) initChampStage();
+  const cv=document.getElementById('champStage');
+  const hint=document.getElementById('centerHint');
+  champTL.color.setHex(team==='blue'?0x4d9fff:0xff6655);
+
+  const loader=new THREE.TextureLoader();
+  loader.load(loadingUrl(key),(tex)=>{
+    champMesh.material.map=tex;
+    champMesh.material.opacity=0;
+    champMesh.material.needsUpdate=true;
+    champMesh.rotation.set(0.2,team==='blue'?-0.3:0.3,0);
+    champMesh.position.set(0,-0.4,0);
+
+    cv.style.opacity='1';
+    gsap.set(hint,{opacity:0});
     burstParticles(team);
-    gsap.to(rw,{opacity:1,scale:1,rotateX:4,rotateY:0,duration:.52,ease:'back.out(1.5)',
-      onComplete:()=>{
-        gsap.to(shine,{x:'220%',duration:.52,ease:'power2.inOut',delay:.06,
-          onComplete:()=>{
-            setTimeout(()=>{
-              fillPickSlot(key,team,idx);
-              gsap.to(rw,{opacity:0,scale:.9,duration:.28,delay:.22,
-                onComplete:()=>{gsap.to(document.getElementById('centerHint'),{opacity:1,duration:.2});cb();}});
-            },520);
-          }
-        });
-      }
-    });
-  };
-  if(img.complete&&img.naturalHeight>0) go(); else{img.onload=go;img.onerror=()=>cb();}
+
+    gsap.to(champMesh.material,{opacity:1,duration:.5,ease:'power2.out'});
+    gsap.to(champMesh.rotation,{x:0,y:0,duration:.6,ease:'power2.out'});
+    gsap.to(champMesh.position,{y:0,duration:.5,ease:'power2.out'});
+
+    setTimeout(()=>{
+      fillPickSlot(key,team,idx);
+      gsap.to(champMesh.material,{opacity:0,duration:.3,delay:.35,
+        onComplete:()=>{
+          cv.style.opacity='0';
+          gsap.to(hint,{opacity:1,duration:.2});
+          cb();
+        }
+      });
+    },1600);
+  },undefined,()=>cb());
 }
 
 // ════════════════════════════════════════════════
@@ -673,11 +713,13 @@ function handleLcuData(data){
   if(!data) return;
   if(!data.connected){
     setLcuStatus('err','롤 클라이언트 감지 안됨');
-    lcuMode=false; return;
+    if(lcuMode){lcuMode=false;document.getElementById('opToggle').style.display='block';}
+    return;
   }
   if(!data.inChampSelect||!data.session){
     setLcuStatus('ok','클라이언트 대기 중');
-    lcuMode=false; return;
+    if(lcuMode){lcuMode=false;document.getElementById('opToggle').style.display='block';}
+    return;
   }
 
   // 챔선 진행 중
@@ -685,7 +727,11 @@ function handleLcuData(data){
   if(sig===lcuLastSig) return;
   lcuLastSig=sig;
 
-  lcuMode=true;
+  if(!lcuMode){
+    lcuMode=true;
+    toggleOp(false);
+    document.getElementById('opToggle').style.display='none';
+  }
   setLcuStatus('cs','챔피언 선택 진행 중');
 
   applyLcuSession(data.session);
@@ -812,7 +858,7 @@ function undo(){
     }
   }
   S.done=false; lastPhase='';
-  gsap.set(document.getElementById('revealWrap'),{opacity:0});
+  if(champMesh){champMesh.material.opacity=0;document.getElementById('champStage').style.opacity='0';}
   startTimer(); updateUI();
 }
 function reset(){
@@ -820,7 +866,7 @@ function reset(){
   stopTimer(); animBusy=false; lastPhase=''; lcuLastSig='';
   S=newState(S.blue.name,S.red.name);
   buildSlots(); updateNames();
-  gsap.set(document.getElementById('revealWrap'),{opacity:0});
+  if(champMesh){champMesh.material.opacity=0;document.getElementById('champStage').style.opacity='0';}
   document.getElementById('centerHint').textContent='챔피언을 선택하세요';
   gsap.set(document.getElementById('completeBanner'),{scale:0});
   updateUI(); startTimer();
@@ -850,7 +896,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();tog
     buildSlots(); updateNames(); lastPhase='';
     updateUI(); startTimer();
     connectWS();
-    toggleOp(true);
+    initChampStage();
   };
 
   document.getElementById('opToggle').onclick=toggleOp;
