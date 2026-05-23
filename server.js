@@ -16,7 +16,11 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
 app.use(express.json({ limit: '10mb' }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), {
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.html')) res.set('Cache-Control', 'no-store');
+  },
+}));
 
 const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
 const INHOUSE_DB_FILE = path.join(DATA_DIR, 'inhouse-db.json');

@@ -98,8 +98,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .champ-card::before{content:'';position:absolute;inset:0;border-radius:18px;z-index:2;pointer-events:none;opacity:0;transition:opacity .5s}
 .blue-strip .champ-card.revealed::before{box-shadow:inset 0 0 0 1px rgba(88,180,255,.55),0 0 28px rgba(88,180,255,.12);opacity:1}
 .red-strip .champ-card.revealed::before{box-shadow:inset 0 0 0 1px rgba(255,77,106,.55),0 0 28px rgba(255,77,106,.12);opacity:1}
-.champ-card.revealed{opacity:1;animation:cardReveal .65s cubic-bezier(.16,1,.3,1) forwards}
-.red-strip .champ-card.revealed{animation:cardRevealR .65s cubic-bezier(.16,1,.3,1) forwards}
+.champ-card.revealed{opacity:1;animation:none}
+.red-strip .champ-card.revealed{animation:none}
 @keyframes cardReveal{0%{transform:skewX(-3deg) translateY(26px) scale(.87);filter:blur(8px) brightness(1.7)}55%{filter:blur(0) brightness(1.1)}100%{transform:skewX(-3deg) translateY(0) scale(1);filter:blur(0)}}
 @keyframes cardRevealR{0%{transform:skewX(3deg) translateY(26px) scale(.87);filter:blur(8px) brightness(1.7)}55%{filter:blur(0) brightness(1.1)}100%{transform:skewX(3deg) translateY(0) scale(1);filter:blur(0)}}
 .lane-badge{position:absolute;top:10px;left:10px;z-index:3;width:38px;height:38px;border-radius:11px;
@@ -140,7 +140,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .ban-slot::before{content:'';position:absolute;inset:-8%;background-image:var(--splash);background-size:cover;background-position:center 15%;opacity:.5;filter:grayscale(.3)}
 .ban-slot::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.85))}
 .ban-slot.revealed{opacity:1;filter:grayscale(.18) brightness(.75) saturate(1.1);transform:scale(1);
-  border-color:rgba(255,60,80,.35);animation:banReveal .45s cubic-bezier(.16,1,.3,1) forwards}
+  border-color:rgba(255,60,80,.35);animation:none}
 @keyframes banReveal{0%{transform:scale(.75) translateY(-10px);filter:grayscale(1) brightness(1.5)}55%{transform:scale(1.04)}100%{transform:scale(1)}}
 .ban-slash{position:absolute;left:-20%;right:-20%;top:48%;height:2px;z-index:2;
   background:linear-gradient(90deg,transparent,#ff3050 20%,#ff3050 80%,transparent);
@@ -162,6 +162,24 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   backdrop-filter:blur(10px);color:#dbe8ff;font-size:12px;font-weight:700;letter-spacing:1px;transition:opacity .4s}
 #audioUnlock:hover{background:rgba(88,180,255,.18)}
 #audioUnlock.hidden{opacity:0;pointer-events:none}
+.sound-control{position:fixed;left:54px;bottom:18px;z-index:10;display:flex;align-items:center;gap:9px;
+  width:236px;padding:9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.16);
+  background:rgba(4,8,18,.82);backdrop-filter:blur(12px);box-shadow:0 10px 30px rgba(0,0,0,.22);
+  opacity:0;transition:opacity .22s ease,transform .22s ease,background .22s ease}
+.sound-control:hover,.sound-control:focus-within{opacity:1;transform:translateY(-2px);background:rgba(4,8,18,.9)}
+.sound-btn{width:30px;height:30px;border-radius:50%;border:1px solid rgba(255,255,255,.16);
+  display:grid;place-items:center;cursor:pointer;background:rgba(255,255,255,.06);color:#dbe8ff;
+  font-size:13px;font-weight:700;line-height:1;transition:background .2s,border-color .2s,transform .2s}
+.sound-btn:hover{background:rgba(88,180,255,.18);border-color:rgba(88,180,255,.42);transform:translateY(-1px)}
+.sound-slider{flex:1;min-width:0;height:4px;border-radius:999px;appearance:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--gold) 0 var(--volume-fill,70%),rgba(255,255,255,.18) var(--volume-fill,70%) 100%);
+  outline:none}
+.sound-slider::-webkit-slider-thumb{appearance:none;width:14px;height:14px;border-radius:50%;
+  background:#fff;border:2px solid var(--gold);box-shadow:0 0 12px rgba(245,217,126,.55)}
+.sound-slider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;
+  background:#fff;border:2px solid var(--gold);box-shadow:0 0 12px rgba(245,217,126,.55)}
+.sound-percent{width:34px;text-align:right;color:#dbe8ff;font-size:11px;font-weight:700;letter-spacing:1px;
+  font-variant-numeric:tabular-nums}
 
 /* COMPLETE */
 .complete{position:fixed;inset:0;z-index:25;pointer-events:none;display:grid;place-items:center;
@@ -181,11 +199,22 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .arena.results-ready{opacity:0;transition:opacity .5s ease}
 
 .matchup-results{position:fixed;inset:0;z-index:24;pointer-events:none;opacity:0;
-  display:grid;grid-template-rows:auto 1fr auto;padding:46px 64px 38px;
-  background:radial-gradient(circle at 50% 20%,rgba(245,217,126,.13),transparent 34%),
-    linear-gradient(90deg,rgba(88,180,255,.16),transparent 32%,transparent 68%,rgba(255,77,106,.15)),
-    rgba(3,5,15,.92);
+  display:grid;grid-template-rows:auto 1fr auto;padding:30px 84px 34px;
+  background:rgba(3,5,15,.92);isolation:isolate;overflow:hidden;
   transform:scale(1.04);filter:blur(16px)}
+.matchup-results::before{content:'';position:absolute;inset:-5%;z-index:-2;
+  background:
+    linear-gradient(90deg,rgba(3,5,15,.2),rgba(3,5,15,.74) 36%,rgba(3,5,15,.74) 64%,rgba(3,5,15,.2)),
+    var(--result-bg-blue),var(--result-bg-red);
+  background-size:cover,50% 100%,50% 100%;
+  background-position:center,left center,right center;
+  background-repeat:no-repeat;filter:blur(5px) saturate(1.08) brightness(.64);transform:scale(1.03);
+  transition:background-image .35s ease,filter .35s ease}
+.matchup-results::after{content:'';position:absolute;inset:0;z-index:-1;
+  background:radial-gradient(circle at 50% 20%,rgba(245,217,126,.16),transparent 34%),
+    linear-gradient(90deg,rgba(88,180,255,.2),rgba(3,5,15,.44) 32%,rgba(3,5,15,.44) 68%,rgba(255,77,106,.18)),
+    linear-gradient(180deg,rgba(3,5,15,.38),rgba(3,5,15,.9));
+  box-shadow:inset 0 0 160px rgba(0,0,0,.55)}
 .matchup-results.on{animation:resultsIn .9s cubic-bezier(.16,1,.3,1) forwards}
 @keyframes resultsIn{to{opacity:1;transform:scale(1);filter:blur(0)}}
 .results-head{text-align:center;align-self:start}
@@ -194,40 +223,40 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   background:linear-gradient(135deg,#fff 16%,var(--gold) 50%,#fff 84%);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
   filter:drop-shadow(0 0 28px rgba(245,217,126,.28))}
-.matchup-grid{align-self:center;width:min(1180px,100%);margin:0 auto;display:grid;grid-template-columns:1fr;gap:10px}
-.matchup-card{position:relative;min-width:0;display:grid;grid-template-columns:minmax(150px,220px) 1fr minmax(150px,220px);
-  align-items:center;gap:18px;min-height:116px;padding:8px 14px;border-radius:14px;
-  border:1px solid rgba(255,255,255,.1);background:linear-gradient(90deg,rgba(88,180,255,.09),rgba(4,8,18,.58) 32%,rgba(4,8,18,.58) 68%,rgba(255,77,106,.09));
-  box-shadow:0 18px 50px rgba(0,0,0,.24);animation:matchupRise .6s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--rise-delay)}
+.matchup-grid{align-self:center;width:min(1060px,100%);margin:0 auto;display:grid;grid-template-columns:1fr;gap:20px}
+.matchup-card{position:relative;min-width:0;display:grid;grid-template-columns:238px minmax(380px,1fr) 238px;
+  align-items:center;gap:70px;min-height:88px;padding:0;
+  animation:matchupRise .6s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--rise-delay)}
 @keyframes matchupRise{0%{opacity:0;transform:translateY(26px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
-.result-pick-card{position:relative;height:100px;min-width:0;overflow:hidden;border-radius:12px;
-  border:1px solid rgba(255,255,255,.12);background:rgba(4,8,18,.7);isolation:isolate;
+.result-pick-card{position:relative;width:100%;height:82px;min-width:0;overflow:hidden;border-radius:6px;
+  border:2px solid rgba(255,255,255,.2);background:rgba(4,8,18,.72);isolation:isolate;
   animation:pickCardPlace .72s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--rise-delay) + var(--side-delay))}
 .result-pick-card::before{content:'';position:absolute;inset:-8%;z-index:-2;background-image:var(--pick-img);
   background-size:cover;background-position:var(--face-pos,50% 15%);filter:saturate(1.12) contrast(1.05)}
 .result-pick-card::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.78))}
-.result-pick-card.blue{--side-delay:80ms;transform-origin:right center;box-shadow:0 0 24px rgba(88,180,255,.14)}
-.result-pick-card.red{--side-delay:170ms;transform-origin:left center;box-shadow:0 0 24px rgba(255,77,106,.14)}
+.result-pick-card.blue{--side-delay:80ms;transform-origin:right center;box-shadow:0 0 24px rgba(88,180,255,.14);justify-self:start}
+.result-pick-card.red{--side-delay:170ms;transform-origin:left center;box-shadow:0 0 24px rgba(255,77,106,.14);justify-self:end}
 @keyframes pickCardPlace{
   0%{opacity:0;filter:blur(10px) brightness(1.6);transform:translateX(var(--enter-x)) translateY(-8px) rotate(var(--enter-r)) scale(.86)}
   100%{opacity:1;filter:blur(0) brightness(1);transform:translateX(0) translateY(0) rotate(0) scale(1)}
 }
 .result-pick-card.blue{--enter-x:-80px;--enter-r:-5deg}
 .result-pick-card.red{--enter-x:80px;--enter-r:5deg}
-.match-lane{position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:2;
+.match-lane{position:absolute;top:7px;left:50%;transform:translateX(-50%);z-index:2;
   padding:4px 10px;border:1px solid rgba(245,217,126,.34);border-radius:999px;
   color:var(--gold);font-size:10px;font-weight:700;letter-spacing:3px;background:rgba(4,8,18,.76)}
-.match-champ{position:absolute;left:10px;right:10px;bottom:25px;font-size:22px;font-weight:700;line-height:1.05;
+.match-champ{position:absolute;left:10px;right:10px;bottom:24px;font-size:20px;font-weight:700;line-height:1.05;
   text-shadow:0 3px 16px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .match-player{position:absolute;left:10px;right:10px;bottom:9px;font-size:11px;font-weight:700;color:#c6d5ee;
   text-shadow:0 2px 10px #000;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .result-pick-card.red .match-champ,.result-pick-card.red .match-player{text-align:right}
-.rate-panel{position:relative;min-width:0;display:grid;grid-template-rows:auto auto auto;align-items:center;justify-items:center;gap:8px}
-.match-vs{color:#fff;font-size:28px;font-weight:700;line-height:1;text-shadow:0 0 18px rgba(245,217,126,.55)}
-.rate-bar{width:min(440px,100%);height:14px;border-radius:999px;overflow:hidden;background:rgba(255,77,106,.72);box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+.rate-panel{position:relative;min-width:0;display:grid;grid-template-rows:auto auto auto;align-items:center;justify-items:center;gap:5px}
+.match-vs{grid-row:1;color:#fff;font-size:23px;font-weight:700;line-height:1;text-shadow:0 0 18px rgba(245,217,126,.55)}
+.rate-bar{grid-row:3;width:100%;height:16px;border-radius:999px;overflow:hidden;background:rgba(255,77,106,.72);
+  box-shadow:0 0 0 1px rgba(255,255,255,.18),0 0 22px rgba(245,217,126,.08)}
 .rate-fill{height:100%;width:var(--blue-rate);background:linear-gradient(90deg,#58b4ff,#9bd7ff)}
-.rate-numbers{width:min(440px,100%);display:flex;justify-content:space-between;
-  font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.rate-numbers{grid-row:2;width:100%;display:flex;justify-content:space-between;
+  font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
 .rate-numbers .blue-rate{color:#9bd7ff}.rate-numbers .red-rate{color:#ff9aad}
 .results-foot{text-align:center;color:#8396b6;font-size:12px;font-weight:700;letter-spacing:3px}
 @media (max-width:900px){
@@ -235,8 +264,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   .results-kicker{font-size:10px;letter-spacing:4px}
   .results-title{font-size:32px;letter-spacing:2px;line-height:1.12}
   .matchup-grid{align-self:stretch;gap:8px;margin-top:12px}
-  .matchup-card{grid-template-columns:1fr 100px 1fr;gap:8px;min-height:94px;padding:7px}
-  .result-pick-card{height:80px;border-radius:10px}
+  .matchup-card{grid-template-columns:1fr minmax(120px,160px) 1fr;gap:10px;min-height:76px;padding:0}
+  .result-pick-card{height:70px;border-radius:6px}
   .match-lane{top:7px;font-size:9px;letter-spacing:2px;padding:3px 7px}
   .match-champ{left:8px;right:8px;bottom:22px;font-size:16px}
   .match-player{left:8px;right:8px;bottom:7px;font-size:9px}
@@ -531,8 +560,14 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 </head>
 <body>
 
-<audio id="bgm" src="/bgm.mp3" loop preload="auto"></audio>
+<audio id="bgm" src="/banpickbgm.mp3" loop preload="auto"></audio>
+<audio id="champVoice" preload="auto"></audio>
 <div id="audioUnlock">🔊 오디오 활성화</div>
+<div class="sound-control" id="soundControl">
+  <button class="sound-btn" id="soundMute" type="button" aria-label="Mute background music">♪</button>
+  <input class="sound-slider" id="soundVolume" type="range" min="0" max="100" value="70" aria-label="Background music volume">
+  <div class="sound-percent" id="soundPercent">70%</div>
+</div>
 
 <canvas id="particleCanvas"></canvas>
 <canvas id="burstCanvas"></canvas>
@@ -789,8 +824,9 @@ function facePos(name){return FACE_POS[name]||'50% 15%'}
 
 /* ── 유틸 ── */
 const splash=n=>`https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${n}_0.jpg`;
-const isLiveMode=new URLSearchParams(location.search).get('live')==='1';
-let championById=new Map(),lastLiveDraft=null,liveInitialized=false,liveCompleteShown=false;
+const qs=new URLSearchParams(location.search);
+const isLiveMode=qs.get('demo')!=='1';
+let championById=new Map(),championKeyById=new Map(),lastLiveDraft=null,liveInitialized=false,liveCompleteShown=false;
 let bgmUnlocked=false,bgmInChampSelect=false;
 const fallbackChampions={
   266:['Aatrox','아트록스'],103:['Ahri','아리'],84:['Akali','아칼리'],799:['Ambessa','암베사'],
@@ -799,6 +835,7 @@ const fallbackChampions={
   497:['Rakan','라칸'],58:['Renekton','레넥톤'],92:['Riven','리븐'],517:['Sylas','사일러스'],
   412:['Thresh','쓰레쉬'],254:['Vi','바이'],777:['Yone','요네'],902:['Milio','밀리오'],53:['Blitzcrank','블리츠크랭크'],
 };
+championKeyById=new Map(Object.entries(fallbackChampions).map(([id,v])=>[Number(id),v]));
 let blue=[['탑','참가자 1','Aatrox','아트록스'],['정글','참가자 2','LeeSin','리 신'],
   ['미드','참가자 3','Ahri','아리'],['원딜','참가자 4','Jinx','징크스'],['서폿','참가자 5','Thresh','쓰레쉬']];
 let red=[['탑','Pz ZZang','Renekton','레넥톤'],['정글','Just Do it JUG','Vi','바이'],
@@ -807,11 +844,46 @@ let blueBans=[['Yone','요네'],['Nidalee','니달리'],['Caitlyn','케이틀린
 let redBans=[['Ambessa','암베사'],['Maokai','마오카이'],['Lucian','루시안'],['Akali','아칼리'],['Blitzcrank','블리츠크랭크']];
 const $=id=>document.getElementById(id);
 const dname=n=>String(n||'').split('#')[0].trim()||n;
+const LANE_ORDER=['top','jungle','middle','bottom','support'];
+function laneKey(lane){
+  const key=String(lane||'').trim().toLowerCase();
+  if(['top','탑'].includes(key))return'top';
+  if(['jungle','jg','정글'].includes(key))return'jungle';
+  if(['middle','mid','미드'].includes(key))return'middle';
+  if(['bottom','bot','adc','원딜','바텀'].includes(key))return'bottom';
+  if(['utility','support','sup','서폿','서포터'].includes(key))return'support';
+  return '';
+}
 function laneLabel(lane,idx){
-  const m={top:'탑',jungle:'정글',middle:'미드',bottom:'원딜',utility:'서폿',support:'서폿'};
-  return m[String(lane||'').toLowerCase()]||['탑','정글','미드','원딜','서폿'][idx]||`${idx+1}`;
+  const m={top:'탑',jungle:'정글',middle:'미드',bottom:'원딜',support:'서폿'};
+  return m[laneKey(lane)]||['탑','정글','미드','원딜','서폿'][idx]||`${idx+1}`;
 }
 function champMeta(id){const n=Number(id||0);if(!n)return['',''];return championById.get(n)||fallbackChampions[n]||[`챔피언${n}`,`챔피언 ${n}`]}
+function champNumericId(champKey){
+  const key=String(champKey||'').toLowerCase();
+  for(const [id,meta] of championKeyById.entries())if(String(meta?.[0]||'').toLowerCase()===key)return id;
+  return 0;
+}
+function champVoiceUrls(mode,champKey){
+  const id=champNumericId(champKey);
+  if(!id)return [];
+  const folder=mode==='ban'?'champion-ban-vo':'champion-choose-vo';
+  return [
+    `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/ko_kr/v1/${folder}/${id}.ogg`,
+    `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/v1/${folder}/${id}.ogg`,
+  ];
+}
+function playChampionVoice(mode,champKey){
+  if(!bgmUnlocked)return;
+  const urls=champVoiceUrls(mode,champKey),v=$('champVoice');
+  if(!urls.length||!v)return;
+  v.pause();
+  v.currentTime=0;
+  let i=0;
+  v.onerror=()=>{if(++i<urls.length){v.src=urls[i];v.play().catch(()=>{})}};
+  v.src=urls[i];
+  v.play().catch(()=>showAudioUnlock());
+}
 
 /* ── 렌더 ── */
 function cardHTML(p,i,side){
@@ -861,6 +933,7 @@ function playCinema({mode,side,pick}){
 
   $('cChamp').textContent=pick[3];
   $('cPlayer').textContent=mode==='ban'?'BAN CONFIRMED':dname(pick[1]).toUpperCase();
+  playChampionVoice(mode,pick[2]);
 
   if(mode==='ban')el.classList.add('ban-mode');
   else el.classList.add(side==='blue'?'pick-blue':'pick-red');
@@ -897,6 +970,8 @@ function revealPick(side,i){
 }
 function resetDraftDemo(){
   matchupRatesPromise=null;
+  resultBgTimers.forEach(clearTimeout);
+  resultBgTimers=[];
   document.querySelectorAll('.champ-card,.ban-slot').forEach(el=>{
     el.classList.remove('revealed');
     el.style.animation='';
@@ -923,14 +998,9 @@ const RESULT_SHOW_DELAY_MS=3120;
 const RESULT_FULL_REVEAL_MS=35000;
 const RESULT_ROW_ANIM_MS=720;
 let matchupRatesPromise=null;
+let resultBgTimers=[];
 function matchupLane(lane){
-  const key=String(lane||'').trim().toLowerCase();
-  if(['탑','top'].includes(key))return'top';
-  if(['정글','jungle','jg'].includes(key))return'jungle';
-  if(['미드','mid','middle'].includes(key))return'middle';
-  if(['원딜','바텀','bottom','bot','adc'].includes(key))return'bottom';
-  if(['서폿','서포터','support','sup'].includes(key))return'support';
-  return '';
+  return laneKey(lane);
 }
 async function loadMatchupRate(bp,rp,i){
   const fallback=matchupRate(bp,rp,i);
@@ -951,8 +1021,32 @@ function matchupRevealDelay(i,total){
   return Math.round(span*(i/(total-1)));
 }
 function prepareMatchupRates(){
-  matchupRatesPromise=Promise.all(blue.map((bp,i)=>loadMatchupRate(bp,red[i],i)));
+  const rows=matchupRows();
+  matchupRatesPromise=Promise.all(rows.map(({bp,rp},i)=>loadMatchupRate(bp,rp,i)));
   return matchupRatesPromise;
+}
+function matchupRows(){
+  return LANE_ORDER.map((key,i)=>{
+    const withLane=(pick,side)=>{
+      const fallback=liveBlankTeam(side)[i];
+      const p=pick||fallback;
+      return [laneLabel(key,i),p?.[1]||fallback[1],p?.[2]||'',p?.[3]||fallback[3],key];
+    };
+    return {
+      laneKey:key,
+      lane:laneLabel(key,i),
+      bp:withLane(blue[i],'blue'),
+      rp:withLane(red[i],'red'),
+    };
+  });
+}
+function setResultBackgroundForLane(i){
+  const resultBg=$('matchupResults');
+  const rows=matchupRows();
+  const blueBg=rows[i]?.bp?.[2]||blue.find(p=>p?.[2])?.[2]||'Aatrox';
+  const redBg=rows[i]?.rp?.[2]||red.find(p=>p?.[2])?.[2]||'Ahri';
+  resultBg.style.setProperty('--result-bg-blue',`url('${splash(blueBg)}')`);
+  resultBg.style.setProperty('--result-bg-red',`url('${splash(redBg)}')`);
 }
 function matchupHTML(bp,rp,i,total,rate){
   const br=rate ?? matchupRate(bp,rp,i);
@@ -978,9 +1072,15 @@ function matchupHTML(bp,rp,i,total,rate){
 }
 async function showMatchupResults(){
   const rates=await (matchupRatesPromise||prepareMatchupRates());
-  $('matchupGrid').innerHTML=blue.map((bp,i)=>matchupHTML(bp,red[i],i,blue.length,rates[i])).join('');
-  $('matchupResults').setAttribute('aria-hidden','false');
-  $('matchupResults').classList.remove('on');void $('matchupResults').offsetWidth;$('matchupResults').classList.add('on');
+  const resultBg=$('matchupResults');
+  const rows=matchupRows();
+  resultBgTimers.forEach(clearTimeout);
+  resultBgTimers=[];
+  setResultBackgroundForLane(0);
+  $('matchupGrid').innerHTML=rows.map(({bp,rp},i)=>matchupHTML(bp,rp,i,rows.length,rates[i])).join('');
+  resultBgTimers=rows.map((_,i)=>setTimeout(()=>setResultBackgroundForLane(i),matchupRevealDelay(i,rows.length)));
+  resultBg.setAttribute('aria-hidden','false');
+  resultBg.classList.remove('on');void resultBg.offsetWidth;resultBg.classList.add('on');
   setPhase('pick','승률 분석');setToast('챔피언별 라인 매치업 승률');
 }
 function scatterDraftCards(){
@@ -1065,8 +1165,47 @@ function showComplete(){
 }
 
 /* ── BGM ── */
-function bgmPlay(){const b=$('bgm');if(!b)return;b.currentTime=0;b.play().catch(()=>{})}
+const BGM_VOLUME_KEY='draftShowBgmVolume';
+const AUDIO_UNLOCK_KEY='draftShowAudioUnlocked';
+let lastBgmVolume=.7;
+function clampVolume(v){return Math.max(0,Math.min(1,Number.isFinite(v)?v:.7))}
+function syncSoundControl(v){
+  const pct=Math.round(clampVolume(v)*100);
+  const slider=$('soundVolume'),percent=$('soundPercent'),mute=$('soundMute'),panel=$('soundControl');
+  if(slider){slider.value=String(pct);slider.style.setProperty('--volume-fill',`${pct}%`)}
+  if(panel)panel.style.setProperty('--volume-fill',`${pct}%`);
+  if(percent)percent.textContent=`${pct}%`;
+  if(mute){mute.textContent=pct===0?'×':'♪';mute.setAttribute('aria-label',pct===0?'Unmute background music':'Mute background music')}
+}
+function setBgmVolume(v,save=true){
+  const vol=clampVolume(v),b=$('bgm'),voice=$('champVoice');
+  if(b){b.volume=vol;b.muted=vol===0}
+  if(voice){voice.volume=vol;voice.muted=vol===0}
+  if(vol>0)lastBgmVolume=vol;
+  if(save)localStorage.setItem(BGM_VOLUME_KEY,String(vol));
+  syncSoundControl(vol);
+}
+function unlockBgmFromGesture(){
+  bgmUnlocked=true;
+  localStorage.setItem(AUDIO_UNLOCK_KEY,'1');
+  document.getElementById('audioUnlock')?.classList.add('hidden');
+  if(bgmInChampSelect)bgmPlay();
+}
+function showAudioUnlock(){
+  bgmUnlocked=false;
+  localStorage.removeItem(AUDIO_UNLOCK_KEY);
+  document.getElementById('audioUnlock')?.classList.remove('hidden');
+}
+function bgmPlay(){const b=$('bgm');if(!b)return;b.currentTime=0;b.play().catch(()=>showAudioUnlock())}
 function bgmStop(){const b=$('bgm');if(!b)return;b.pause();b.currentTime=0}
+function stopAllAudio(){
+  ['bgm','champVoice'].forEach(id=>{
+    const a=$(id);
+    if(!a)return;
+    a.pause();
+    a.currentTime=0;
+  });
+}
 
 /* ── 챔피언 맵 ── */
 async function loadChampionMap(){
@@ -1074,9 +1213,11 @@ async function loadChampionMap(){
     const v=await fetch('https://ddragon.leagueoflegends.com/api/versions.json').then(r=>r.json());
     const d=await fetch(`https://ddragon.leagueoflegends.com/cdn/${v[0]||'15.10.1'}/data/ko_KR/champion.json`).then(r=>r.json());
     championById=new Map(Object.values(d.data||{}).map(c=>[Number(c.key),[c.id,c.name]]));
+    championKeyById=new Map(championById);
     if(lastLiveDraft)applyLiveDraft(lastLiveDraft,false);
   }catch(e){
     championById=new Map(Object.entries(fallbackChampions).map(([id,v])=>[Number(id),v]));
+    championKeyById=new Map(championById);
   }
 }
 
@@ -1092,6 +1233,23 @@ function connectDraftLive(){
 }
 function liveBlankTeam(s){return Array.from({length:5},(_,i)=>[laneLabel('',i),`${s==='blue'?'참가자':'레드'} ${i+1}`,'','대기 중'])}
 function liveBlankBans(){return Array.from({length:5},()=>['','대기 중'])}
+function liveTeamByLane(players,side,actions=[]){
+  const rows=liveBlankTeam(side),used=new Set();
+  const pickByCell=new Map((actions||[])
+    .filter(a=>a.type==='pick'&&a.side===side&&a.championId)
+    .map(a=>[Number(a.actorCellId),Number(a.championId)]));
+  (players||[]).forEach((p,fallbackIdx)=>{
+    const key=laneKey(p.lane);
+    const laneIdx=LANE_ORDER.indexOf(key);
+    const idx=laneIdx>=0&&!used.has(laneIdx)?laneIdx:fallbackIdx;
+    if(idx<0||idx>=5)return;
+    used.add(idx);
+    const champId=pickByCell.get(Number(p.cellId))||Number(p.championId||0);
+    const m=champMeta(champId);
+    rows[idx]=[laneLabel(key,idx),p.name||`${side==='blue'?'블루':'레드'} ${idx+1}`,m[0],m[1],key||LANE_ORDER[idx]];
+  });
+  return rows;
+}
 function applyLiveDraft(draft,animate){
   lastLiveDraft=draft;
   const nowCS=!!(draft?.connected&&draft?.inChampSelect&&draft?.session);
@@ -1103,14 +1261,16 @@ function applyLiveDraft(draft,animate){
   const nb=liveBlankTeam('blue'),nr=liveBlankTeam('red'),nbb=liveBlankBans(),nrb=liveBlankBans();
   const completed=(s.actions||[]).filter(a=>a.completed&&a.championId);
   const bc={blue:0,red:0};
-  (s.blue||[]).forEach((p,i)=>{const m=champMeta(p.championId);nb[i]=[laneLabel(p.lane,i),`참가자 ${i+1}`,m[0],m[1]]});
-  (s.red||[]).forEach((p,i)=>{const m=champMeta(p.championId);nr[i]=[laneLabel(p.lane,i),p.name||`레드 ${i+1}`,m[0],m[1]]});
+  liveTeamByLane(s.blue,'blue',completed).forEach((p,i)=>{nb[i]=p});
+  liveTeamByLane(s.red,'red',completed).forEach((p,i)=>{nr[i]=p});
   completed.filter(a=>a.type==='ban').forEach(a=>{const m=champMeta(a.championId);const pos=bc[a.side]++;
     if(a.side==='blue'&&pos<5)nbb[pos]=m;if(a.side==='red'&&pos<5)nrb[pos]=m});
   blue=nb;red=nr;blueBans=nbb;redBans=nrb;render();
   completed.filter(a=>a.type==='pick').forEach(a=>{
     const t=a.side==='blue'?blue:red;
-    if(t[a.idx]?.[3]!=='대기 중')document.querySelector(`.champ-card[data-side="${a.side}"][data-idx="${a.idx}"]`)?.classList.add('revealed')});
+    const idx=t.findIndex(p=>p?.[2]&&champNumericId(p[2])===Number(a.championId));
+    const revealIdx=idx>=0?idx:a.idx;
+    if(t[revealIdx]?.[3]!=='대기 중')document.querySelector(`.champ-card[data-side="${a.side}"][data-idx="${revealIdx}"]`)?.classList.add('revealed')});
   completed.filter(a=>a.type==='ban').forEach(a=>{
     const matches=completed.filter(x=>x.type==='ban'&&x.side===a.side);
     const pos=matches.findIndex(x=>x.id===a.id);
@@ -1124,7 +1284,11 @@ function applyLiveDraft(draft,animate){
   liveInitialized=true;
   if(shouldAnim){
     if(latest.type==='ban'){const pos=completed.filter(a=>a.type==='ban'&&a.side===latest.side).findIndex(a=>`${a.id}:${a.type}:${a.championId}`===lk);if(pos>=0)revealBan(latest.side,pos)}
-    else revealPick(latest.side,latest.idx);
+    else{
+      const t=latest.side==='blue'?blue:red;
+      const idx=t.findIndex(p=>p?.[2]&&champNumericId(p[2])===Number(latest.championId));
+      revealPick(latest.side,idx>=0?idx:latest.idx);
+    }
     if(pickCount>=10&&!liveCompleteShown){liveCompleteShown=true;setTimeout(showComplete,5050)}
   }else{
     if(pickCount>=10&&!liveCompleteShown){liveCompleteShown=true;showComplete();return}
@@ -1139,10 +1303,24 @@ let sec=30;
 setInterval(()=>{$('timer').textContent='00:'+String(sec).padStart(2,'0');sec=sec<=0?30:sec-1},1000);
 
 /* ── 오디오 잠금 해제 ── */
-document.getElementById('audioUnlock').addEventListener('click',()=>{
-  bgmUnlocked=true;document.getElementById('audioUnlock').classList.add('hidden');
-  if(bgmInChampSelect)bgmPlay();
+const savedBgmVolume=localStorage.getItem(BGM_VOLUME_KEY);
+setBgmVolume(savedBgmVolume===null ? .7 : clampVolume(Number(savedBgmVolume)),false);
+if(localStorage.getItem(AUDIO_UNLOCK_KEY)==='1'){
+  bgmUnlocked=true;
+  document.getElementById('audioUnlock')?.classList.add('hidden');
+}
+document.getElementById('audioUnlock').addEventListener('click',unlockBgmFromGesture);
+document.getElementById('soundVolume').addEventListener('input',e=>{
+  setBgmVolume(Number(e.target.value)/100);
+  unlockBgmFromGesture();
 });
+document.getElementById('soundMute').addEventListener('click',()=>{
+  const b=$('bgm'),current=b?b.volume:lastBgmVolume;
+  setBgmVolume(current>0?0:lastBgmVolume);
+  unlockBgmFromGesture();
+});
+window.addEventListener('pagehide',stopAllAudio);
+window.addEventListener('beforeunload',stopAllAudio);
 
 loadChampionMap();
 
