@@ -9,177 +9,250 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;600;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;overflow:hidden;background:#030510;font-family:'Noto Sans KR',sans-serif;color:#fff}
-
-/* ──── THREE.JS CANVAS ──── */
+html,body{width:100%;height:100%;overflow:hidden;background:#020408;font-family:'Noto Sans KR',sans-serif;color:#fff}
 #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
-/* ──── SCREENS ──── */
-.screen{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#030510}
-#loadScreen{}
+/* ── screens ── */
+.screen{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;background:#020408}
 #setupScreen{display:none}
-.logo{font-family:'Rajdhani',sans-serif;font-size:3.2rem;font-weight:900;letter-spacing:8px;
-  background:linear-gradient(135deg,#4dafff,#c8a84b,#ff6655);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.sub-logo{font-size:.9rem;letter-spacing:4px;color:rgba(148,163,184,.6);margin-top:-18px}
-.load-bar-wrap{width:300px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
-.load-bar{height:100%;background:linear-gradient(90deg,#1a6ef0,#c8a84b,#e03020);width:0;transition:width .3s;border-radius:2px}
-.load-status{font-size:.82rem;color:rgba(148,163,184,.5);letter-spacing:1px}
-
-/* setup */
-.setup-teams{display:flex;gap:48px;align-items:center}
-.setup-team{display:flex;flex-direction:column;align-items:center;gap:10px}
-.setup-team label{font-size:.8rem;letter-spacing:3px;font-weight:700}
+.logo{font-family:'Rajdhani',sans-serif;font-size:3rem;font-weight:900;letter-spacing:8px;
+  background:linear-gradient(135deg,#4dafff,#c8a84b,#ff6655);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub-logo{font-size:.85rem;letter-spacing:4px;color:rgba(148,163,184,.5);margin-top:-16px}
+.load-bar-wrap{width:280px;height:3px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden}
+.load-bar{height:100%;background:linear-gradient(90deg,#1a6ef0,#c8a84b,#e03020);width:0;transition:width .3s}
+.load-status{font-size:.78rem;color:rgba(148,163,184,.45);letter-spacing:1px}
+.setup-teams{display:flex;gap:44px;align-items:center}
+.setup-team{display:flex;flex-direction:column;align-items:center;gap:8px}
+.setup-team label{font-size:.75rem;letter-spacing:3px;font-weight:700}
 .st-blue label{color:#4dafff}.st-red label{color:#ff6655}
-.setup-team input{background:rgba(20,30,60,.9);border:1px solid rgba(77,159,255,.3);color:#fff;
-  padding:10px 20px;border-radius:6px;font-size:1.1rem;text-align:center;
-  font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;outline:none;width:200px}
-.st-red input{border-color:rgba(220,60,40,.3)}
-.setup-vs{font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:900;color:rgba(200,168,75,.4);letter-spacing:4px}
-.setup-start{background:linear-gradient(135deg,rgba(200,168,75,.25),rgba(200,168,75,.1));
-  border:1px solid rgba(200,168,75,.5);color:rgba(200,168,75,.95);
-  padding:12px 44px;border-radius:8px;font-size:1rem;font-weight:700;
-  letter-spacing:4px;cursor:pointer;font-family:'Rajdhani',sans-serif;text-transform:uppercase;
-  transition:all .2s}
-.setup-start:hover{background:rgba(200,168,75,.3);box-shadow:0 0 40px rgba(200,168,75,.25)}
+.setup-team input{background:rgba(16,24,50,.9);border:1px solid rgba(77,159,255,.25);color:#fff;
+  padding:9px 18px;border-radius:6px;font-size:1rem;text-align:center;
+  font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;outline:none;width:190px}
+.st-red input{border-color:rgba(220,60,40,.25)}
+.setup-vs{font-family:'Rajdhani',sans-serif;font-size:2rem;font-weight:900;color:rgba(200,168,75,.35);letter-spacing:4px}
+.setup-start{background:rgba(200,168,75,.18);border:1px solid rgba(200,168,75,.45);color:rgba(200,168,75,.95);
+  padding:11px 42px;border-radius:7px;font-size:.95rem;font-weight:700;letter-spacing:4px;
+  cursor:pointer;font-family:'Rajdhani',sans-serif;text-transform:uppercase;transition:all .2s}
+.setup-start:hover{background:rgba(200,168,75,.3);box-shadow:0 0 36px rgba(200,168,75,.22)}
 
-/* ──── MAIN UI ──── */
-#mainUI{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;padding:10px 14px;gap:6px;pointer-events:none}
+/* ── LCU status bar ── */
+#lcuBar{position:fixed;top:0;left:0;right:0;z-index:800;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:4px 10px;font-size:.72rem;letter-spacing:1px;
+  background:rgba(2,4,8,.85);border-bottom:1px solid rgba(255,255,255,.06);
+  font-family:'Rajdhani',sans-serif;transition:all .4s;display:none}
+#lcuDot{width:7px;height:7px;border-radius:50%;background:#444;flex-shrink:0;transition:background .3s}
+#lcuDot.ok{background:#31f2b2;box-shadow:0 0 8px #31f2b2}
+#lcuDot.cs{background:#4dafff;box-shadow:0 0 8px #4dafff;animation:dotPulse .8s ease-in-out infinite alternate}
+#lcuDot.err{background:#ff4444}
+#lcuTxt{color:rgba(148,163,184,.65)}
+#modeTag{font-size:.65rem;padding:2px 8px;border-radius:10px;border:1px solid;
+  color:rgba(200,168,75,.7);border-color:rgba(200,168,75,.3);background:rgba(200,168,75,.07)}
+#modeTag.lcu{color:rgba(49,242,178,.7);border-color:rgba(49,242,178,.3);background:rgba(49,242,178,.07)}
+
+/* ── MAIN UI ── */
+#mainUI{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;padding:32px 12px 8px;gap:6px}
 
 /* header */
-#header{display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;padding:2px 0 4px}
-.phase-label{font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;letter-spacing:4px;
-  color:rgba(200,168,75,.7);text-transform:uppercase;min-width:140px;text-align:center}
-#timerWrap{display:flex;flex-direction:column;align-items:center;gap:2px}
-#timerVal{font-family:'Rajdhani',sans-serif;font-size:2.8rem;font-weight:900;color:#fff;line-height:1;min-width:60px;text-align:center;
-  text-shadow:0 0 30px rgba(200,168,75,.5)}
-#timerVal.warn{color:#ff4444;text-shadow:0 0 30px rgba(255,68,68,.7);animation:timerPulse .5s ease-in-out infinite alternate}
-#timerBar{width:60px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
-#timerFill{height:100%;background:rgba(200,168,75,.8);width:100%;transition:width 1s linear;border-radius:2px}
-#turnBadge{font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:3px;
-  padding:4px 16px;border-radius:20px;border:1px solid;min-width:140px;text-align:center}
-#turnBadge.blue{color:#4dafff;border-color:rgba(77,159,255,.4);background:rgba(26,110,240,.12)}
-#turnBadge.red{color:#ff6655;border-color:rgba(255,100,80,.4);background:rgba(220,60,40,.12)}
+#header{display:flex;align-items:center;justify-content:center;gap:18px;flex-shrink:0;padding:0 0 4px}
+#phaseLbl{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:600;
+  letter-spacing:4px;color:rgba(200,168,75,.65);text-transform:uppercase;min-width:130px;text-align:center}
+#timerWrap{display:flex;flex-direction:column;align-items:center;gap:1px}
+#timerVal{font-family:'Rajdhani',sans-serif;font-size:2.6rem;font-weight:900;color:#fff;
+  line-height:1;min-width:60px;text-align:center;text-shadow:0 0 28px rgba(200,168,75,.45)}
+#timerVal.warn{color:#ff4444;text-shadow:0 0 28px rgba(255,68,68,.65);animation:warnPulse .5s ease-in-out infinite alternate}
+#timerBar{width:56px;height:2px;background:rgba(255,255,255,.08);border-radius:1px;overflow:hidden}
+#timerFill{height:100%;background:rgba(200,168,75,.7);width:100%;transition:width 1s linear}
+#turnBadge{font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;
+  letter-spacing:3px;padding:3px 16px;border-radius:20px;border:1px solid;min-width:130px;text-align:center;transition:all .3s}
+#turnBadge.blue{color:#4dafff;border-color:rgba(77,159,255,.4);background:rgba(26,110,240,.1)}
+#turnBadge.red{color:#ff6655;border-color:rgba(255,100,80,.4);background:rgba(220,60,40,.1)}
 
-/* ban row */
-#banRow{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px}
-.ban-slots{display:flex;gap:5px}
-.ban-slot{width:48px;height:48px;border-radius:4px;background:rgba(10,15,30,.8);
-  border:2px solid rgba(148,163,184,.15);overflow:hidden;position:relative;transition:all .3s;flex-shrink:0}
-.ban-slot.active{border-color:gold;box-shadow:0 0 14px rgba(255,215,0,.6);animation:pulseGlow 1s ease-in-out infinite}
-.ban-slot img{width:100%;height:100%;object-fit:cover;filter:grayscale(.2) brightness(.75)}
-.ban-slot .bx{position:absolute;inset:0;background:rgba(160,20,20,.55);display:flex;align-items:center;justify-content:center;
-  font-size:1.4rem;color:#fff;opacity:0;transition:opacity .3s}
-.ban-slot.done .bx{opacity:1}
-.ban-slot.done.blue-ban{border-color:rgba(77,159,255,.4)}
-.ban-slot.done.red-ban{border-color:rgba(255,100,80,.4)}
-.ban-mid{font-family:'Rajdhani',sans-serif;font-size:.75rem;letter-spacing:2px;color:rgba(200,168,75,.4);text-align:center;white-space:nowrap}
+/* ══════════════════════════════
+   3D BAN CARDS  ← 핵심 교체
+═══════════════════════════════ */
+#banRow{display:flex;align-items:flex-end;justify-content:space-between;flex-shrink:0;gap:8px;padding:0 4px}
+.ban-side{display:flex;gap:5px;align-items:flex-end}
+.ban-card{
+  width:58px;height:102px; /* portrait = 308:560 loading art ratio */
+  position:relative;
+  perspective:460px;
+  flex-shrink:0;
+  cursor:default;
+}
+.ban-card .bc{
+  width:100%;height:100%;
+  position:relative;
+  transform-style:preserve-3d;
+  border-radius:7px;overflow:hidden;
+  background:#0c1220;
+  border:1.5px solid rgba(148,163,184,.12);
+  transition:border-color .4s,box-shadow .4s;
+  background-size:cover;
+  background-position:center top;
+  box-shadow:0 6px 20px rgba(0,0,0,.7);
+}
+/* empty slot idle */
+.ban-card:not(.filled) .bc{
+  animation:banIdle 4s ease-in-out infinite;
+}
+/* filled: floating 3D character */
+.ban-card.filled .bc{
+  animation:banFloat 3.5s ease-in-out infinite;
+}
+.ban-card.filled.blue-ban .bc{
+  border-color:rgba(77,159,255,.55);
+  box-shadow:0 0 18px rgba(77,159,255,.35),0 6px 22px rgba(0,0,0,.75);
+}
+.ban-card.filled.red-ban .bc{
+  border-color:rgba(255,100,80,.55);
+  box-shadow:0 0 18px rgba(255,100,80,.35),0 6px 22px rgba(0,0,0,.75);
+}
+/* active slot */
+.ban-card.active .bc{
+  border-color:gold !important;
+  box-shadow:0 0 16px rgba(255,215,0,.5),0 4px 18px rgba(0,0,0,.7) !important;
+  animation:banActive 1.2s ease-in-out infinite !important;
+}
+/* banned overlay */
+.ban-card .xovl{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.62);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  opacity:0;transition:opacity .4s;
+  border-radius:6px;
+}
+.ban-card.filled .xovl{opacity:1}
+.ban-card .xovl .xi{font-size:1.4rem;color:rgba(220,40,40,.9);line-height:1}
+.ban-card .xovl .xn{font-size:.44rem;color:rgba(200,210,230,.55);letter-spacing:.3px;text-align:center;max-width:52px;word-break:keep-all;line-height:1.3}
+/* gradient overlay at bottom of card */
+.ban-card .bc::after{content:'';position:absolute;bottom:0;left:0;right:0;height:35%;
+  background:linear-gradient(transparent,rgba(0,0,0,.65));pointer-events:none}
 
-/* arena */
+.ban-mid{font-family:'Rajdhani',sans-serif;font-size:.7rem;letter-spacing:2px;
+  color:rgba(200,168,75,.35);text-align:center;white-space:nowrap;padding-bottom:6px}
+
+/* ── arena ── */
 #arena{flex:1;display:flex;gap:0;min-height:0}
-
-/* team panels */
-.team-panel{width:155px;flex-shrink:0;display:flex;flex-direction:column;gap:0;padding:0 8px}
-.team-hdr{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:900;letter-spacing:3px;
-  text-align:center;padding:4px 0 8px;text-transform:uppercase}
-.blue .team-hdr{color:#4dafff;text-shadow:0 0 20px rgba(77,159,255,.5)}
-.red .team-hdr{color:#ff6655;text-shadow:0 0 20px rgba(255,100,80,.5)}
+.team-panel{width:150px;flex-shrink:0;display:flex;flex-direction:column;gap:0;padding:0 7px}
+.team-hdr{font-family:'Rajdhani',sans-serif;font-size:1.15rem;font-weight:900;
+  letter-spacing:3px;text-align:center;padding:3px 0 7px;text-transform:uppercase}
+.blue .team-hdr{color:#4dafff;text-shadow:0 0 18px rgba(77,159,255,.4)}
+.red .team-hdr{color:#ff6655;text-shadow:0 0 18px rgba(255,100,80,.4)}
 .pick-slots{display:flex;flex-direction:column;gap:5px;flex:1;min-height:0}
-
-/* pick slot */
-.pslot{flex:1;border-radius:6px;background:rgba(8,12,25,.7);border:2px solid rgba(148,163,184,.1);
-  overflow:hidden;position:relative;perspective:700px;transition:border-color .3s,box-shadow .3s;min-height:0}
-.pslot.active{box-shadow:0 0 18px rgba(77,159,255,.5);animation:pulseGlow 1s ease-in-out infinite}
-.blue .pslot.active{border-color:#4dafff;box-shadow:0 0 18px rgba(77,159,255,.5)}
-.red .pslot.active{border-color:#ff6655;box-shadow:0 0 18px rgba(255,100,80,.5)}
+.pslot{flex:1;border-radius:6px;background:rgba(6,10,22,.7);border:2px solid rgba(148,163,184,.08);
+  overflow:hidden;position:relative;perspective:650px;transition:border-color .3s,box-shadow .3s;min-height:0}
+.pslot.active{animation:pulseGlow 1s ease-in-out infinite}
+.blue .pslot.active{border-color:#4dafff;box-shadow:0 0 16px rgba(77,159,255,.45)}
+.red .pslot.active{border-color:#ff6655;box-shadow:0 0 16px rgba(255,100,80,.45)}
 .pslot .ci{width:100%;height:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.4,0,.2,1);position:relative}
 .pslot.flipped .ci{transform:rotateY(180deg)}
 .pslot .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:4px;overflow:hidden}
-.pslot .back{background:linear-gradient(160deg,rgba(14,20,40,.95),rgba(6,10,22,.95))}
-.blue .pslot .back{border-left:3px solid rgba(26,110,240,.3)}
-.red .pslot .back{border-right:3px solid rgba(220,60,40,.3)}
+.pslot .back{background:linear-gradient(155deg,rgba(12,18,36,.95),rgba(5,8,18,.95))}
+.blue .pslot .back::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:rgba(26,110,240,.25)}
+.red .pslot .back::before{content:'';position:absolute;right:0;top:0;bottom:0;width:3px;background:rgba(220,60,40,.25)}
 .pslot .front{transform:rotateY(180deg);background:#000}
 .pslot .front img{width:100%;height:100%;object-fit:cover;object-position:center 10%}
-.pslot .front .pname{position:absolute;bottom:0;left:0;right:0;padding:3px 5px;
-  background:linear-gradient(transparent,rgba(0,0,0,.88));font-size:.6rem;font-weight:700;
+.pslot .pname{position:absolute;bottom:0;left:0;right:0;padding:3px 5px;
+  background:linear-gradient(transparent,rgba(0,0,0,.88));font-size:.58rem;font-weight:700;
   text-align:center;letter-spacing:.5px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+/* in-progress pick: highlight */
+.pslot.inprogress{border-color:rgba(200,168,75,.6) !important;
+  box-shadow:0 0 14px rgba(200,168,75,.3) !important;animation:inprogPulse 1.5s ease-in-out infinite !important}
 
-/* center stage */
-#center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;min-width:0}
-#revealWrap{width:min(250px,100%);aspect-ratio:9/16;border-radius:12px;overflow:hidden;
-  border:2px solid rgba(200,168,75,.3);
-  box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 40px rgba(200,168,75,.15);
-  opacity:0;transform:perspective(900px) rotateX(8deg) scale(.85);
-  transition:none;position:relative}
+/* ── center stage ── */
+#center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;position:relative;min-width:0}
+#revealWrap{width:min(235px,100%);aspect-ratio:9/16;border-radius:12px;overflow:hidden;
+  border:2px solid rgba(200,168,75,.25);
+  box-shadow:0 28px 70px rgba(0,0,0,.9),0 0 36px rgba(200,168,75,.12);
+  opacity:0;position:relative}
 #revealWrap img{width:100%;height:100%;object-fit:cover;object-position:center 5%}
-#revealWrap .rovl{position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.75))}
-#revealWrap .rname{position:absolute;bottom:18px;left:0;right:0;text-align:center;
-  font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:900;letter-spacing:3px;
+#revealWrap .rovl{position:absolute;inset:0;background:linear-gradient(transparent 40%,rgba(0,0,0,.78))}
+#revealWrap .rname{position:absolute;bottom:16px;left:0;right:0;text-align:center;
+  font-family:'Rajdhani',sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:3px;
   text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.9)}
 #revealWrap .rshine{position:absolute;inset:0;
-  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.25) 50%,transparent 70%);
   transform:translateX(-120%);pointer-events:none}
-#centerHint{font-family:'Rajdhani',sans-serif;font-size:.95rem;letter-spacing:3px;
-  color:rgba(148,163,184,.45);text-align:center;text-transform:uppercase}
+#centerHint{font-family:'Rajdhani',sans-serif;font-size:.88rem;letter-spacing:3px;
+  color:rgba(148,163,184,.38);text-align:center;text-transform:uppercase}
 
-/* ──── OP PANEL ──── */
+/* ── operator panel ── */
 #opPanel{position:fixed;bottom:0;left:0;right:0;z-index:200;
-  background:rgba(4,7,18,.97);border-top:1px solid rgba(77,159,255,.2);
+  background:rgba(3,6,16,.97);border-top:1px solid rgba(77,159,255,.18);
   transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
-  max-height:58vh;display:flex;flex-direction:column;pointer-events:all}
+  max-height:56vh;display:flex;flex-direction:column;pointer-events:all}
 #opPanel.open{transform:translateY(0)}
-#opBar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
-#opSearch{flex:1;background:rgba(15,22,50,.9);border:1px solid rgba(77,159,255,.3);
-  color:#fff;padding:7px 12px;border-radius:5px;font-size:.9rem;font-family:'Noto Sans KR',sans-serif;outline:none}
-#opSearch::placeholder{color:rgba(148,163,184,.4)}
-#opInfo{font-family:'Rajdhani',sans-serif;font-size:.85rem;letter-spacing:1px;color:rgba(200,168,75,.75);min-width:170px}
-.obtn{background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4dafff;
-  padding:5px 12px;border-radius:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:.78rem;transition:all .15s;white-space:nowrap}
-.obtn:hover{background:rgba(77,159,255,.22)}
-.obtn.danger{background:rgba(220,60,40,.12);border-color:rgba(220,60,40,.3);color:#ff6655}
-#champGrid{flex:1;overflow-y:auto;padding:10px;
-  display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:5px}
+#opBar{display:flex;align-items:center;gap:9px;padding:8px 13px;border-bottom:1px solid rgba(255,255,255,.05);flex-shrink:0}
+#opSearch{flex:1;background:rgba(12,20,46,.9);border:1px solid rgba(77,159,255,.25);
+  color:#fff;padding:6px 11px;border-radius:5px;font-size:.88rem;font-family:'Noto Sans KR',sans-serif;outline:none}
+#opSearch::placeholder{color:rgba(148,163,184,.35)}
+#opInfo{font-family:'Rajdhani',sans-serif;font-size:.82rem;letter-spacing:1px;color:rgba(200,168,75,.7);min-width:160px}
+.obtn{background:rgba(77,159,255,.1);border:1px solid rgba(77,159,255,.28);color:#4dafff;
+  padding:5px 11px;border-radius:4px;cursor:pointer;font-size:.75rem;transition:all .15s;white-space:nowrap}
+.obtn:hover{background:rgba(77,159,255,.2)}
+.obtn.danger{background:rgba(220,60,40,.1);border-color:rgba(220,60,40,.28);color:#ff6655}
+#champGrid{flex:1;overflow-y:auto;padding:9px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:5px}
 .cgcard{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;
-  padding:4px;border-radius:6px;border:1px solid transparent;transition:all .12s}
-.cgcard:hover{background:rgba(77,159,255,.12);border-color:rgba(77,159,255,.3)}
-.cgcard.used{opacity:.25;pointer-events:none}
-.cgcard img{width:56px;height:56px;border-radius:3px;object-fit:cover}
-.cgcard span{font-size:.55rem;color:rgba(190,205,225,.65);text-align:center;line-height:1.2;max-width:68px;word-break:keep-all}
-#champGrid::-webkit-scrollbar{width:5px}
+  padding:4px;border-radius:5px;border:1px solid transparent;transition:all .12s}
+.cgcard:hover{background:rgba(77,159,255,.1);border-color:rgba(77,159,255,.28)}
+.cgcard.used{opacity:.22;pointer-events:none}
+.cgcard img{width:54px;height:54px;border-radius:3px;object-fit:cover}
+.cgcard span{font-size:.52rem;color:rgba(185,200,220,.6);text-align:center;line-height:1.2;max-width:66px;word-break:keep-all}
+#champGrid::-webkit-scrollbar{width:4px}
 #champGrid::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}
-#champGrid::-webkit-scrollbar-thumb{background:rgba(77,159,255,.25);border-radius:3px}
+#champGrid::-webkit-scrollbar-thumb{background:rgba(77,159,255,.22);border-radius:2px}
 
-/* toggle btn */
-#opToggle{position:fixed;bottom:8px;right:10px;z-index:300;
-  background:rgba(77,159,255,.15);border:1px solid rgba(77,159,255,.35);
-  color:#4dafff;padding:5px 10px;border-radius:4px;cursor:pointer;
-  font-family:'Noto Sans KR',sans-serif;font-size:.75rem;display:none;pointer-events:all;transition:all .2s}
-#opToggle:hover{background:rgba(77,159,255,.28)}
+#opToggle{position:fixed;bottom:7px;right:8px;z-index:300;
+  background:rgba(77,159,255,.13);border:1px solid rgba(77,159,255,.3);
+  color:#4dafff;padding:5px 9px;border-radius:4px;cursor:pointer;
+  font-size:.72rem;display:none;pointer-events:all;transition:all .2s}
+#opToggle:hover{background:rgba(77,159,255,.25)}
 
-/* ──── ANIMATIONS ──── */
-@keyframes pulseGlow{0%,100%{opacity:1}50%{opacity:.45}}
-@keyframes timerPulse{from{opacity:1}to{opacity:.4}}
-@keyframes phaseFade{0%{opacity:0;transform:scale(.9)}30%{opacity:1;transform:scale(1)}70%{opacity:1}100%{opacity:0;transform:scale(1.05)}}
+/* ── animations ── */
+@keyframes banIdle{
+  0%,100%{transform:rotateX(4deg) rotateY(-2deg)}
+  50%{transform:rotateX(6deg) rotateY(2deg)}
+}
+@keyframes banFloat{
+  0%,100%{transform:rotateX(6deg) rotateY(-5deg) translateY(0)}
+  33%{transform:rotateX(9deg) rotateY(5deg) translateY(-5px)}
+  66%{transform:rotateX(4deg) rotateY(-3deg) translateY(-2px)}
+}
+@keyframes banActive{
+  0%,100%{transform:rotateX(5deg) rotateY(-3deg) scale(1)}
+  50%{transform:rotateX(8deg) rotateY(3deg) scale(1.04)}
+}
+@keyframes pulseGlow{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes inprogPulse{0%,100%{opacity:1}50%{opacity:.55}}
+@keyframes warnPulse{from{opacity:1}to{opacity:.35}}
+@keyframes dotPulse{from{opacity:1}to{opacity:.25}}
 
-/* phase flash overlay */
+/* phase flash */
 #phaseFlash{position:fixed;inset:0;z-index:400;pointer-events:none;
   display:flex;align-items:center;justify-content:center;opacity:0}
-#phaseFlashText{font-family:'Rajdhani',sans-serif;font-size:4rem;font-weight:900;
-  letter-spacing:10px;text-transform:uppercase;
+#phaseFlashTxt{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:900;
+  letter-spacing:10px;text-transform:uppercase;text-align:center;
   background:linear-gradient(135deg,#fff,rgba(200,168,75,.9));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  text-align:center}
-
-/* complete banner */
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 #completeBanner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
   z-index:450;text-align:center;pointer-events:none}
-#completeBanner h1{font-family:'Rajdhani',sans-serif;font-size:4rem;font-weight:900;
-  letter-spacing:8px;color:rgba(200,168,75,.95);text-shadow:0 0 60px rgba(200,168,75,.4)}
+#completeBanner h1{font-family:'Rajdhani',sans-serif;font-size:3.5rem;font-weight:900;
+  letter-spacing:8px;color:rgba(200,168,75,.95);text-shadow:0 0 50px rgba(200,168,75,.35)}
 </style>
 </head>
 <body>
 
-<!-- Three.js background -->
 <canvas id="bgCanvas"></canvas>
+
+<!-- LCU status bar -->
+<div id="lcuBar">
+  <div id="lcuDot"></div>
+  <span id="lcuTxt">롤 클라이언트 연결 대기 중...</span>
+  <div id="modeTag">수동 모드</div>
+</div>
 
 <!-- Load screen -->
 <div id="loadScreen" class="screen">
@@ -209,22 +282,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030510;font-family:
 <!-- Main UI -->
 <div id="mainUI">
   <div id="header">
-    <div class="phase-label" id="phaseLbl">BAN PHASE 1</div>
+    <div id="phaseLbl">대기 중</div>
     <div id="timerWrap">
-      <div id="timerVal">30</div>
+      <div id="timerVal">--</div>
       <div id="timerBar"><div id="timerFill"></div></div>
     </div>
-    <div id="turnBadge" class="blue">BLUE TURN</div>
+    <div id="turnBadge" class="blue">--</div>
   </div>
 
+  <!-- 3D Ban cards row -->
   <div id="banRow">
-    <div class="ban-slots" id="blueBans"></div>
+    <div class="ban-side" id="blueBans"></div>
     <div class="ban-mid" id="banMid">BAN PHASE</div>
-    <div class="ban-slots" id="redBans"></div>
+    <div class="ban-side" id="redBans"></div>
   </div>
 
   <div id="arena">
-    <div class="team-panel blue" id="bluePanel">
+    <div class="team-panel blue">
       <div class="team-hdr" id="blueHdr">BLUE</div>
       <div class="pick-slots" id="bluePicks"></div>
     </div>
@@ -237,23 +311,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030510;font-family:
       </div>
       <div id="centerHint">챔피언을 선택하세요</div>
     </div>
-    <div class="team-panel red" id="redPanel">
+    <div class="team-panel red">
       <div class="team-hdr" id="redHdr">RED</div>
       <div class="pick-slots" id="redPicks"></div>
     </div>
   </div>
 </div>
 
-<!-- Phase flash -->
-<div id="phaseFlash"><div id="phaseFlashText"></div></div>
-
-<!-- Complete banner -->
+<div id="phaseFlash"><div id="phaseFlashTxt"></div></div>
 <div id="completeBanner"><h1>DRAFT COMPLETE</h1></div>
 
-<!-- Op toggle -->
 <button id="opToggle">⚙ 운영자 [TAB]</button>
 
-<!-- Operator panel -->
 <div id="opPanel">
   <div id="opBar">
     <input id="opSearch" placeholder="🔍 챔피언 검색..." autocomplete="off">
@@ -265,140 +334,135 @@ html,body{width:100%;height:100%;overflow:hidden;background:#030510;font-family:
 </div>
 
 <script>
-// ════════════════════════════════════════════════════════════
-//  THREE.JS — 3D BACKGROUND SCENE
-// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  THREE.JS  — 3D 배경 씬
+// ════════════════════════════════════════════════
 let renderer, scene, camera, particles, clock;
-let mx = 0, my = 0;
+let mx=0, my=0;
 
-function initThree() {
-  const canvas = document.getElementById('bgCanvas');
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setSize(innerWidth, innerHeight);
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setClearColor(0x030510);
+function initThree(){
+  const cv=document.getElementById('bgCanvas');
+  renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+  renderer.setSize(innerWidth,innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setClearColor(0x020408);
+  scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0x020408,.007);
+  clock=new THREE.Clock();
+  camera=new THREE.PerspectiveCamera(55,innerWidth/innerHeight,.1,300);
+  camera.position.set(0,0,60);
 
-  scene = new THREE.Scene();
-  scene.fog = new THREE.FogExp2(0x030510, 0.007);
-  clock = new THREE.Clock();
-
-  camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, .1, 300);
-  camera.position.set(0, 0, 60);
-
-  // ── particle system ──
-  const N = 1800;
-  const pos = new Float32Array(N * 3);
-  const col = new Float32Array(N * 3);
-  const sz  = new Float32Array(N);
-  for (let i = 0; i < N; i++) {
-    pos[i*3]   = (Math.random()-.5)*200;
-    pos[i*3+1] = (Math.random()-.5)*110;
-    pos[i*3+2] = (Math.random()-.5)*100;
-    const blue = Math.random() > .45;
-    if (blue) { col[i*3]=.08+Math.random()*.15; col[i*3+1]=.35+Math.random()*.3; col[i*3+2]=.7+Math.random()*.3; }
-    else       { col[i*3]=.65+Math.random()*.35; col[i*3+1]=.08+Math.random()*.1; col[i*3+2]=.04+Math.random()*.08; }
-    sz[i] = Math.random() * 1.4 + .3;
+  // 파티클
+  const N=2000, pos=new Float32Array(N*3), col=new Float32Array(N*3), sz=new Float32Array(N);
+  for(let i=0;i<N;i++){
+    pos[i*3]=(Math.random()-.5)*220; pos[i*3+1]=(Math.random()-.5)*120; pos[i*3+2]=(Math.random()-.5)*110;
+    const b=Math.random()>.42;
+    if(b){col[i*3]=.06;col[i*3+1]=.32+Math.random()*.28;col[i*3+2]=.65+Math.random()*.35;}
+    else{col[i*3]=.6+Math.random()*.4;col[i*3+1]=.06;col[i*3+2]=.04;}
+    sz[i]=Math.random()*1.3+.2;
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
-  geo.setAttribute('size',     new THREE.BufferAttribute(sz,  1));
-  const mat = new THREE.PointsMaterial({ size:.7, vertexColors:true, transparent:true, opacity:.55, sizeAttenuation:true, depthWrite:false });
-  particles = new THREE.Points(geo, mat);
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  geo.setAttribute('size',new THREE.BufferAttribute(sz,1));
+  const mat=new THREE.PointsMaterial({size:.65,vertexColors:true,transparent:true,opacity:.5,sizeAttenuation:true,depthWrite:false});
+  particles=new THREE.Points(geo,mat);
   scene.add(particles);
 
-  // ── floor grid ──
-  const grid = new THREE.GridHelper(200, 24, 0x0d1b3a, 0x080e22);
-  grid.position.y = -28;
-  scene.add(grid);
+  // 바닥 그리드
+  const g=new THREE.GridHelper(220,26,0x0a1530,0x060c1a);
+  g.position.y=-30; scene.add(g);
 
-  // ── vertical light beams ──
-  const bGeo = new THREE.PlaneGeometry(1.2, 70);
-  [-35,-18,0,18,35].forEach((x, i) => {
-    const m = new THREE.MeshBasicMaterial({
-      color: i % 2 === 0 ? 0x1a6ef0 : 0xe03020,
-      transparent:true, opacity:.04+Math.random()*.04, side:THREE.DoubleSide, depthWrite:false
-    });
-    const b = new THREE.Mesh(bGeo, m);
-    b.position.set(x, 5, -30 + Math.random()*12);
-    b.rotation.z = (Math.random()-.5)*.25;
+  // 수직 빛 기둥
+  const bGeo=new THREE.PlaneGeometry(1,75);
+  [-38,-20,0,20,38].forEach((x,i)=>{
+    const m=new THREE.MeshBasicMaterial({color:i%2===0?0x1a6ef0:0xd02818,transparent:true,opacity:.03+Math.random()*.04,side:THREE.DoubleSide,depthWrite:false});
+    const b=new THREE.Mesh(bGeo,m);
+    b.position.set(x,5,-28+Math.random()*10); b.rotation.z=(Math.random()-.5)*.2;
     scene.add(b);
   });
 
-  // ── floating 3D champion "orbs" (sphere geometry with team glow) ──
-  const orbGeo = new THREE.SphereGeometry(1.2, 12, 12);
-  [[-40,0,-15],[40,0,-15],[-25,15,-20],[25,15,-20],[0,-15,-10]].forEach(([x,y,z]) => {
-    const blue = x < 0;
-    const m = new THREE.MeshBasicMaterial({ color: blue ? 0x1a4080 : 0x801820, transparent:true, opacity:.18+Math.random()*.12 });
-    const o = new THREE.Mesh(orbGeo, m);
-    o.position.set(x,y,z);
-    o.userData.oy = y;
-    o.userData.speed = .4 + Math.random()*.4;
-    scene.add(o);
+  // 부유하는 구체 (팀 컬러)
+  const sGeo=new THREE.SphereGeometry(1,10,10);
+  [[-42,2,-12],[42,2,-12],[-26,14,-18],[26,14,-18],[0,-14,-8]].forEach(([x,y,z])=>{
+    const m=new THREE.MeshBasicMaterial({color:x<0?0x1a3870:0x701018,transparent:true,opacity:.15+Math.random()*.1});
+    const o=new THREE.Mesh(sGeo,m); o.position.set(x,y,z);
+    o.userData={oy:y,spd:.35+Math.random()*.4}; scene.add(o);
   });
 
-  window.addEventListener('mousemove', e => { mx = (e.clientX/innerWidth-.5)*2; my = (e.clientY/innerHeight-.5)*2; });
-  window.addEventListener('resize', () => {
-    camera.aspect = innerWidth/innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(innerWidth, innerHeight);
-  });
+  window.addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=(e.clientY/innerHeight-.5)*2;});
+  window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 }
 
-function renderThree() {
+function renderThree(){
   requestAnimationFrame(renderThree);
-  const t = clock.getElapsedTime();
-  particles.rotation.y = t * .025;
-  particles.rotation.x = Math.sin(t * .018) * .04;
-  scene.children.forEach(o => {
-    if (o.userData.oy !== undefined) {
-      o.position.y = o.userData.oy + Math.sin(t * o.userData.speed + o.position.x) * 2.5;
-    }
-  });
-  camera.position.x += (mx*4 - camera.position.x) * .025;
-  camera.position.y += (-my*2.5 - camera.position.y) * .025;
-  camera.lookAt(0, 0, 0);
-  renderer.render(scene, camera);
+  const t=clock.getElapsedTime();
+  particles.rotation.y=t*.022; particles.rotation.x=Math.sin(t*.016)*.035;
+  scene.children.forEach(o=>{if(o.userData.oy!==undefined) o.position.y=o.userData.oy+Math.sin(t*o.userData.spd+o.position.x)*2.5;});
+  camera.position.x+=(mx*4-camera.position.x)*.022; camera.position.y+=(-my*2.5-camera.position.y)*.022;
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
 }
 
-// ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════
+//  파티클 버스트 (밴/픽 이벤트용)
+// ════════════════════════════════════════════════
+function burstParticles(team){
+  const N=80;
+  const pos=new Float32Array(N*3), col=new Float32Array(N*3), sz=new Float32Array(N);
+  const cx=team==='blue'?-35:35;
+  for(let i=0;i<N;i++){
+    pos[i*3]=cx+(Math.random()-.5)*8; pos[i*3+1]=(Math.random()-.5)*6; pos[i*3+2]=(Math.random()-.5)*8;
+    if(team==='blue'){col[i*3]=.1;col[i*3+1]=.5+Math.random()*.5;col[i*3+2]=1;}
+    else{col[i*3]=1;col[i*3+1]=.2+Math.random()*.2;col[i*3+2]=.1;}
+    sz[i]=Math.random()*2+.5;
+  }
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  geo.setAttribute('size',new THREE.BufferAttribute(sz,1));
+  const mat=new THREE.PointsMaterial({size:1.2,vertexColors:true,transparent:true,opacity:.9,sizeAttenuation:true,depthWrite:false});
+  const burst=new THREE.Points(geo,mat); scene.add(burst);
+  let age=0;
+  const tick=()=>{
+    age+=.04; mat.opacity=Math.max(0,.9-age*1.2);
+    burst.position.y+=.05;
+    if(age>0.75){scene.remove(burst);return;}
+    requestAnimationFrame(tick);
+  }; tick();
+}
+
+// ════════════════════════════════════════════════
 //  RIOT DATA DRAGON
-// ════════════════════════════════════════════════════════════
-let champData = {};
-let DDV = '14.10.1';
+// ════════════════════════════════════════════════
+let champById={};  // numericId → {id,name}
+let champByKey={}; // 'Aatrox' → {id,name,numId}
+let DDV='14.10.1';
 
-async function loadChamps() {
-  setLoad(10, '최신 패치 버전 확인 중...');
-  try {
-    const r = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
-    DDV = (await r.json())[0];
-  } catch(_) {}
-
-  setLoad(35, `챔피언 목록 로딩 중... (${DDV})`);
-  const r = await fetch(`https://ddragon.leagueoflegends.com/cdn/${DDV}/data/ko_KR/champion.json`);
-  const j = await r.json();
-  Object.values(j.data).forEach(c => {
-    champData[c.id] = { id: c.id, name: c.name };
+async function loadChamps(){
+  setLoad(10,'버전 확인 중...');
+  try{const r=await fetch('https://ddragon.leagueoflegends.com/api/versions.json');DDV=(await r.json())[0];}catch(_){}
+  setLoad(35,`챔피언 로딩 중... (${DDV})`);
+  const r=await fetch(`https://ddragon.leagueoflegends.com/cdn/${DDV}/data/ko_KR/champion.json`);
+  const j=await r.json();
+  Object.values(j.data).forEach(c=>{
+    const numId=Number(c.key);
+    const obj={id:c.id, name:c.name, numId};
+    champById[numId]=obj;
+    champByKey[c.id]=obj;
   });
-
-  setLoad(90, '준비 완료!');
-  await new Promise(r => setTimeout(r, 400));
-  setLoad(100, '');
+  setLoad(95,'준비 완료!'); await new Promise(r=>setTimeout(r,350)); setLoad(100,'');
 }
+function setLoad(p,msg){document.getElementById('loadBar').style.width=p+'%';document.getElementById('loadStatus').textContent=msg;}
 
-function setLoad(p, msg) {
-  document.getElementById('loadBar').style.width = p + '%';
-  document.getElementById('loadStatus').textContent = msg;
-}
+const iconUrl    = k => `https://ddragon.leagueoflegends.com/cdn/${DDV}/img/champion/${k}.png`;
+const splashUrl  = k => `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${k}_0.jpg`;
+const loadingUrl = k => `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${k}_0.jpg`; // 308×560 전신 아트
 
-const iconUrl  = k => `https://ddragon.leagueoflegends.com/cdn/${DDV}/img/champion/${k}.png`;
-const splashUrl = k => `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${k}_0.jpg`;
-
-// ════════════════════════════════════════════════════════════
-//  DRAFT STATE  (standard competitive: 10 bans, 10 picks)
-// ════════════════════════════════════════════════════════════
-// [team, type, slotIdx, phaseLabel]
-const SEQ = [
+// ════════════════════════════════════════════════
+//  DRAFT STATE  (수동 모드용)
+// ════════════════════════════════════════════════
+const SEQ=[
   ['blue','ban',0,'BAN PHASE 1'],['red','ban',0,'BAN PHASE 1'],
   ['blue','ban',1,'BAN PHASE 1'],['red','ban',1,'BAN PHASE 1'],
   ['blue','ban',2,'BAN PHASE 1'],['red','ban',2,'BAN PHASE 1'],
@@ -413,375 +477,386 @@ const SEQ = [
   ['red','pick',4,'PICK PHASE 2'],
 ];
 
-let S = {};
-function newState(bname, rname) {
-  return {
-    step: 0, done: false,
-    blue: { name: bname, bans: Array(5).fill(null), picks: Array(5).fill(null) },
-    red:  { name: rname, bans: Array(5).fill(null), picks: Array(5).fill(null) },
-    used: new Set(),
-  };
+let S={};
+function newState(bn,rn){
+  return{step:0,done:false,
+    blue:{name:bn,bans:Array(5).fill(null),picks:Array(5).fill(null)},
+    red:{name:rn,bans:Array(5).fill(null),picks:Array(5).fill(null)},
+    used:new Set()};
 }
 
-// ════════════════════════════════════════════════════════════
-//  BUILD SLOTS
-// ════════════════════════════════════════════════════════════
-function buildSlots() {
-  ['blue','red'].forEach(t => {
-    const bEl = document.getElementById(t+'Bans');
-    bEl.innerHTML = '';
-    for (let i=0;i<5;i++) {
-      const d = document.createElement('div');
-      d.className = 'ban-slot';
-      d.id = `bs-${t}-${i}`;
-      d.innerHTML = '<div class="bx">✕</div>';
-      bEl.appendChild(d);
+// ════════════════════════════════════════════════
+//  빌드 슬롯
+// ════════════════════════════════════════════════
+function buildSlots(){
+  // 3D ban cards
+  ['blue','red'].forEach(t=>{
+    const el=document.getElementById(t+'Bans');
+    el.innerHTML='';
+    for(let i=0;i<5;i++){
+      const d=document.createElement('div');
+      d.className='ban-card';
+      d.id=`bc-${t}-${i}`;
+      d.innerHTML='<div class="bc"><div class="xovl"><div class="xi">✕</div><div class="xn"></div></div></div>';
+      el.appendChild(d);
     }
-    const pEl = document.getElementById(t+'Picks');
-    pEl.innerHTML = '';
-    for (let i=0;i<5;i++) {
-      const d = document.createElement('div');
-      d.className = 'pslot';
-      d.id = `ps-${t}-${i}`;
-      d.innerHTML = `<div class="ci"><div class="face back"></div><div class="face front"><img src="" alt=""><div class="pname"></div></div></div>`;
-      pEl.appendChild(d);
+  });
+  // pick slots
+  ['blue','red'].forEach(t=>{
+    const el=document.getElementById(t+'Picks');
+    el.innerHTML='';
+    for(let i=0;i<5;i++){
+      const d=document.createElement('div');
+      d.className='pslot';
+      d.id=`ps-${t}-${i}`;
+      d.innerHTML=`<div class="ci"><div class="face back"></div><div class="face front"><img src="" alt=""><div class="pname"></div></div></div>`;
+      el.appendChild(d);
     }
   });
 }
 
-// ════════════════════════════════════════════════════════════
-//  UPDATE UI
-// ════════════════════════════════════════════════════════════
-let lastPhase = '';
+// ════════════════════════════════════════════════
+//  UI 업데이트  (수동 모드)
+// ════════════════════════════════════════════════
+let lastPhase='';
 
-function updateUI() {
-  if (S.done) return;
-  const [team, type, idx, phase] = SEQ[S.step];
-
-  // phase change flash
-  if (phase !== lastPhase) {
-    lastPhase = phase;
-    flashPhase(phase);
-  }
-
-  // header
-  document.getElementById('phaseLbl').textContent = phase;
-  const badge = document.getElementById('turnBadge');
-  badge.textContent = `${team === 'blue' ? '🔵 BLUE' : '🔴 RED'} — ${type === 'ban' ? '밴' : '픽'}`;
-  badge.className = team;
-
-  // clear active highlights
-  document.querySelectorAll('.ban-slot,.pslot').forEach(el => el.classList.remove('active'));
-
-  // set active slot
-  const activeEl = document.getElementById(type === 'ban' ? `bs-${team}-${idx}` : `ps-${team}-${idx}`);
-  if (activeEl) activeEl.classList.add('active');
-
-  // fill already-done slots
-  ['blue','red'].forEach(t => {
-    S[t].bans.forEach((k,i) => {
-      if (!k) return;
-      const el = document.getElementById(`bs-${t}-${i}`);
-      if (!el || el.classList.contains('done')) return;
-      el.classList.add('done', `${t}-ban`);
-      const img = document.createElement('img');
-      img.src = iconUrl(k);
-      el.insertBefore(img, el.firstChild);
-    });
-  });
-
-  // center hint
-  document.getElementById('centerHint').textContent =
-    `${team === 'blue' ? '🔵 BLUE' : '🔴 RED'} ${type === 'ban' ? '밴' : '픽'} 선택`;
-
-  // op info
-  document.getElementById('opInfo').textContent =
-    `${team === 'blue' ? '🔵 블루' : '🔴 레드'} ${type === 'ban' ? '밴' : '픽'} (${S.step+1}/${SEQ.length})`;
-
+function updateUI(){
+  if(S.done) return;
+  const[team,type,idx,phase]=SEQ[S.step];
+  if(phase!==lastPhase){lastPhase=phase;flashPhase(phase);}
+  document.getElementById('phaseLbl').textContent=phase;
+  const b=document.getElementById('turnBadge');
+  b.textContent=`${team==='blue'?'🔵 BLUE':'🔴 RED'} — ${type==='ban'?'밴':'픽'}`;
+  b.className=team;
+  document.querySelectorAll('.ban-card,.pslot').forEach(el=>el.classList.remove('active'));
+  const ae=document.getElementById(type==='ban'?`bc-${team}-${idx}`:`ps-${team}-${idx}`);
+  if(ae) ae.classList.add('active');
+  ['blue','red'].forEach(t=>S[t].bans.forEach((k,i)=>{if(!k)return;const el=document.getElementById(`bc-${t}-${i}`);if(!el||el.classList.contains('filled'))return;fillBanSlot(el,k,t);}));
+  document.getElementById('centerHint').textContent=`${team==='blue'?'🔵 BLUE':'🔴 RED'} ${type==='ban'?'밴':'픽'} 선택`;
+  document.getElementById('opInfo').textContent=`${team==='blue'?'블루':'레드'} ${type==='ban'?'밴':'픽'} (${S.step+1}/${SEQ.length})`;
   updateGrid();
 }
 
-function updateGrid() {
-  const q = document.getElementById('opSearch').value.toLowerCase().trim();
-  const grid = document.getElementById('champGrid');
-  grid.innerHTML = '';
-  const list = Object.values(champData).sort((a,b) => a.name.localeCompare(b.name,'ko'));
-  list.forEach(({ id, name }) => {
-    if (q && !name.toLowerCase().includes(q) && !id.toLowerCase().includes(q)) return;
-    const d = document.createElement('div');
-    d.className = 'cgcard' + (S.used.has(id) ? ' used' : '');
-    d.innerHTML = `<img src="${iconUrl(id)}" alt="${name}" loading="lazy"><span>${name}</span>`;
-    d.onclick = () => pick(id);
+function fillBanSlot(el, key, team){
+  const ch=champByKey[key]||{name:key};
+  el.classList.add('filled',`${team}-ban`);
+  el.classList.remove('active');
+  const bc=el.querySelector('.bc');
+  bc.style.backgroundImage=`url('${loadingUrl(key)}')`;
+  const xn=el.querySelector('.xn');
+  if(xn) xn.textContent=ch.name;
+}
+
+function fillPickSlot(key, team, idx){
+  const el=document.getElementById(`ps-${team}-${idx}`);
+  if(!el) return;
+  const fr=el.querySelector('.front');
+  if(!fr) return;
+  fr.querySelector('img').src=splashUrl(key);
+  fr.querySelector('.pname').textContent=champByKey[key]?.name||key;
+  el.classList.remove('active','inprogress');
+  requestAnimationFrame(()=>el.classList.add('flipped'));
+}
+
+function updateGrid(){
+  const q=document.getElementById('opSearch').value.toLowerCase().trim();
+  const grid=document.getElementById('champGrid');
+  grid.innerHTML='';
+  Object.values(champByKey).sort((a,b)=>a.name.localeCompare(b.name,'ko')).forEach(({id,name})=>{
+    if(q&&!name.toLowerCase().includes(q)&&!id.toLowerCase().includes(q)) return;
+    const d=document.createElement('div');
+    d.className='cgcard'+(S.used.has(id)?' used':'');
+    d.innerHTML=`<img src="${iconUrl(id)}" alt="${name}" loading="lazy"><span>${name}</span>`;
+    d.onclick=()=>pick(id);
     grid.appendChild(d);
   });
 }
-
-function updateNames() {
-  document.getElementById('blueHdr').textContent = S.blue.name;
-  document.getElementById('redHdr').textContent  = S.red.name;
+function updateNames(){
+  document.getElementById('blueHdr').textContent=S.blue.name;
+  document.getElementById('redHdr').textContent=S.red.name;
 }
 
-// ════════════════════════════════════════════════════════════
-//  PICK / BAN
-// ════════════════════════════════════════════════════════════
-let animBusy = false;
+// ════════════════════════════════════════════════
+//  픽/밴 (수동 모드)
+// ════════════════════════════════════════════════
+let animBusy=false;
 
-function pick(key) {
-  if (S.done || animBusy || S.used.has(key)) return;
-  const [team, type, idx] = SEQ[S.step];
-  S[team][type+'s'][idx] = key;
-  S.used.add(key);
+function pick(key){
+  if(S.done||animBusy||S.used.has(key)||lcuMode) return;
+  const[team,type,idx]=SEQ[S.step];
+  S[team][type+'s'][idx]=key; S.used.add(key);
+  stopTimer(); animBusy=true;
 
-  stopTimer();
-  animBusy = true;
-
-  revealChamp(key, team, type, idx, () => {
-    animBusy = false;
-    S.step++;
-    if (S.step >= SEQ.length) {
-      S.done = true;
-      onComplete();
-    } else {
-      updateUI();
-      startTimer();
-    }
-  });
-
-  // immediately update picked state in UI (for re-render during animation)
+  if(type==='ban'){
+    const el=document.getElementById(`bc-${team}-${idx}`);
+    if(el) fillBanSlot(el,key,team);
+    burstParticles(team);
+    setTimeout(()=>{animBusy=false;S.step++;if(S.step>=SEQ.length){S.done=true;onComplete();}else{updateUI();startTimer();}},400);
+  } else {
+    revealChamp(key,team,type,idx,()=>{
+      animBusy=false;S.step++;
+      if(S.step>=SEQ.length){S.done=true;onComplete();}else{updateUI();startTimer();}
+    });
+  }
   updateUI();
 }
 
-// ════════════════════════════════════════════════════════════
-//  REVEAL ANIMATION  (3D card reveal + shine)
-// ════════════════════════════════════════════════════════════
-function revealChamp(key, team, type, idx, cb) {
-  const rw    = document.getElementById('revealWrap');
-  const img   = document.getElementById('revealImg');
-  const name  = document.getElementById('revealName');
-  const shine = document.getElementById('rshine');
-  const hint  = document.getElementById('centerHint');
-
-  img.src  = splashUrl(key);
-  name.textContent = champData[key]?.name || key;
-
-  const glow = team === 'blue'
-    ? '0 30px 80px rgba(0,0,0,.9),0 0 50px rgba(77,159,255,.45)'
-    : '0 30px 80px rgba(0,0,0,.9),0 0 50px rgba(255,100,80,.45)';
-  const bord = team === 'blue' ? 'rgba(77,159,255,.6)' : 'rgba(255,100,80,.6)';
-  rw.style.boxShadow   = glow;
-  rw.style.borderColor = bord;
-
-  gsap.set(hint, { opacity:0 });
-  gsap.set(rw, { opacity:0, scale:.78, rotateX:20, rotateY: team==='blue'?-8:8 });
-  gsap.set(shine, { x:'-120%' });
-
-  const onReady = () => {
-    // 3D fly-in
-    gsap.to(rw, { opacity:1, scale:1, rotateX:4, rotateY:0, duration:.55, ease:'back.out(1.5)',
-      onComplete: () => {
-        // shine sweep
-        gsap.to(shine, { x:'220%', duration:.55, ease:'power2.inOut', delay:.05,
-          onComplete: () => {
-            // hold → fill slot → fade out
-            setTimeout(() => {
-              fillSlot(key, team, type, idx);
-              gsap.to(rw, { opacity:0, scale:.9, duration:.3, delay:.25,
-                onComplete: () => {
-                  gsap.to(hint, { opacity:1, duration:.2 });
-                  cb();
-                }
-              });
-            }, 550);
+// ════════════════════════════════════════════════
+//  REVEAL ANIMATION
+// ════════════════════════════════════════════════
+function revealChamp(key,team,type,idx,cb){
+  const rw=document.getElementById('revealWrap'),img=document.getElementById('revealImg');
+  const name=document.getElementById('revealName'),shine=document.getElementById('rshine');
+  img.src=splashUrl(key);
+  name.textContent=champByKey[key]?.name||key;
+  rw.style.borderColor=team==='blue'?'rgba(77,159,255,.55)':'rgba(255,100,80,.55)';
+  rw.style.boxShadow=team==='blue'?'0 28px 70px rgba(0,0,0,.9),0 0 45px rgba(77,159,255,.4)':'0 28px 70px rgba(0,0,0,.9),0 0 45px rgba(255,100,80,.4)';
+  gsap.set(rw,{opacity:0,scale:.76,rotateX:18,rotateY:team==='blue'?-10:10});
+  gsap.set(shine,{x:'-120%'});
+  gsap.set(document.getElementById('centerHint'),{opacity:0});
+  const go=()=>{
+    burstParticles(team);
+    gsap.to(rw,{opacity:1,scale:1,rotateX:4,rotateY:0,duration:.52,ease:'back.out(1.5)',
+      onComplete:()=>{
+        gsap.to(shine,{x:'220%',duration:.52,ease:'power2.inOut',delay:.06,
+          onComplete:()=>{
+            setTimeout(()=>{
+              fillPickSlot(key,team,idx);
+              gsap.to(rw,{opacity:0,scale:.9,duration:.28,delay:.22,
+                onComplete:()=>{gsap.to(document.getElementById('centerHint'),{opacity:1,duration:.2});cb();}});
+            },520);
           }
         });
       }
     });
   };
-
-  if (img.complete && img.naturalHeight > 0) { onReady(); }
-  else { img.onload = onReady; img.onerror = () => { gsap.set(rw, { opacity:0 }); cb(); }; }
+  if(img.complete&&img.naturalHeight>0) go(); else{img.onload=go;img.onerror=()=>cb();}
 }
 
-function fillSlot(key, team, type, idx) {
-  if (type === 'ban') {
-    const el = document.getElementById(`bs-${team}-${idx}`);
-    if (!el) return;
-    el.classList.remove('active');
-    el.classList.add('done', `${team}-ban`);
-    if (!el.querySelector('img')) {
-      const img = document.createElement('img');
-      img.src = iconUrl(key);
-      el.insertBefore(img, el.firstChild);
-    }
-  } else {
-    const el = document.getElementById(`ps-${team}-${idx}`);
-    if (!el) return;
-    const fr = el.querySelector('.front');
-    if (!fr) return;
-    fr.querySelector('img').src = splashUrl(key);
-    fr.querySelector('.pname').textContent = champData[key]?.name || key;
-    requestAnimationFrame(() => el.classList.add('flipped'));
+// ════════════════════════════════════════════════
+//  LCU 연동  ← 핵심 신규 기능
+// ════════════════════════════════════════════════
+let lcuMode=false;
+let ws=null;
+let lcuLastSig='';
+
+function connectWS(){
+  try{
+    ws=new WebSocket(`ws://${location.hostname}:3000`);
+    ws.onopen=()=>{
+      setLcuStatus('ok','롤 클라이언트 연결됨');
+    };
+    ws.onmessage=e=>{
+      let msg;try{msg=JSON.parse(e.data);}catch(_){return;}
+      if(msg.type==='lcu_champ_select') handleLcuData(msg.data);
+      if(msg.type==='state'&&msg.data?.lcuDraft) handleLcuData(msg.data.lcuDraft);
+    };
+    ws.onclose=()=>{
+      setLcuStatus('err','서버 연결 끊김 — 재연결 중...');
+      setTimeout(connectWS,2500);
+    };
+    ws.onerror=()=>{};
+  }catch(_){setTimeout(connectWS,3000);}
+}
+
+function setLcuStatus(type,txt){
+  const dot=document.getElementById('lcuDot');
+  const label=document.getElementById('lcuTxt');
+  const tag=document.getElementById('modeTag');
+  dot.className=type;
+  label.textContent=txt;
+  if(type==='cs'){tag.textContent='LCU 모드';tag.className='lcu';}
+  else{tag.textContent='수동 모드';tag.className='';}
+}
+
+function handleLcuData(data){
+  if(!data) return;
+  if(!data.connected){
+    setLcuStatus('err','롤 클라이언트 감지 안됨');
+    lcuMode=false; return;
   }
+  if(!data.inChampSelect||!data.session){
+    setLcuStatus('ok','클라이언트 대기 중');
+    lcuMode=false; return;
+  }
+
+  // 챔선 진행 중
+  const sig=JSON.stringify(data.session);
+  if(sig===lcuLastSig) return;
+  lcuLastSig=sig;
+
+  lcuMode=true;
+  setLcuStatus('cs','챔피언 선택 진행 중');
+
+  applyLcuSession(data.session);
 }
 
-// ════════════════════════════════════════════════════════════
-//  PHASE FLASH
-// ════════════════════════════════════════════════════════════
-function flashPhase(phase) {
-  const fl   = document.getElementById('phaseFlash');
-  const ftxt = document.getElementById('phaseFlashText');
-  ftxt.textContent = phase;
-  gsap.fromTo(fl,
-    { opacity:0, scale:.85 },
-    { opacity:1, scale:1, duration:.3, ease:'power2.out',
-      onComplete: () => gsap.to(fl, { opacity:0, duration:.5, delay:.6 })
+function applyLcuSession(session){
+  if(!session) return;
+  const actions=session.actions||[];
+
+  // 완료된 밴
+  const blueBans=actions.filter(a=>a.type==='ban'&&a.side==='blue'&&a.completed&&a.championId).sort((a,b)=>a.id-b.id);
+  const redBans =actions.filter(a=>a.type==='ban'&&a.side==='red' &&a.completed&&a.championId).sort((a,b)=>a.id-b.id);
+
+  blueBans.forEach((a,i)=>{
+    const ch=champById[a.championId]; if(!ch) return;
+    const el=document.getElementById(`bc-blue-${i}`);
+    if(el&&!el.classList.contains('filled')){fillBanSlot(el,ch.id,'blue');burstParticles('blue');}
+  });
+  redBans.forEach((a,i)=>{
+    const ch=champById[a.championId]; if(!ch) return;
+    const el=document.getElementById(`bc-red-${i}`);
+    if(el&&!el.classList.contains('filled')){fillBanSlot(el,ch.id,'red');burstParticles('red');}
+  });
+
+  // 완료된 픽
+  actions.filter(a=>a.type==='pick'&&a.completed&&a.championId).forEach(a=>{
+    const ch=champById[a.championId]; if(!ch) return;
+    const el=document.getElementById(`ps-${a.side}-${a.idx}`);
+    if(el&&!el.classList.contains('flipped')){
+      revealChamp(ch.id,a.side,'pick',a.idx,()=>{});
     }
-  );
-}
+  });
 
-// ════════════════════════════════════════════════════════════
-//  TIMER
-// ════════════════════════════════════════════════════════════
-let timerID = null, timerSec = 30;
-const TLIMIT = 30;
-
-function startTimer() {
-  timerSec = TLIMIT;
-  const el   = document.getElementById('timerVal');
-  const fill = document.getElementById('timerFill');
-  el.classList.remove('warn');
-  el.textContent = timerSec;
-  fill.style.transition = 'none';
-  fill.style.width = '100%';
-
-  clearInterval(timerID);
-  timerID = setInterval(() => {
-    timerSec--;
-    el.textContent = timerSec;
-    fill.style.transition = 'width 1s linear';
-    fill.style.width = (timerSec / TLIMIT * 100) + '%';
-    if (timerSec <= 10) el.classList.add('warn');
-    if (timerSec <= 0) stopTimer();
-  }, 1000);
-}
-
-function stopTimer() {
-  clearInterval(timerID);
-  document.getElementById('timerVal').textContent = '--';
-  document.getElementById('timerVal').classList.remove('warn');
-  document.getElementById('timerFill').style.width = '0%';
-}
-
-// ════════════════════════════════════════════════════════════
-//  DRAFT COMPLETE
-// ════════════════════════════════════════════════════════════
-function onComplete() {
-  document.getElementById('phaseLbl').textContent = 'DRAFT COMPLETE';
-  document.getElementById('centerHint').textContent = '밴픽 완료';
-  document.getElementById('turnBadge').textContent = '';
-  document.querySelectorAll('.ban-slot,.pslot').forEach(el => el.classList.remove('active'));
-  const banner = document.getElementById('completeBanner');
-  gsap.to(banner, { scale:1, duration:.6, ease:'back.out(1.5)', delay:.3 });
-  setTimeout(() => gsap.to(banner, { scale:0, duration:.4, delay:3 }), 3000);
-}
-
-// ════════════════════════════════════════════════════════════
-//  UNDO / RESET
-// ════════════════════════════════════════════════════════════
-function undo() {
-  if (S.step === 0 || animBusy) return;
-  S.step--;
-  const [team, type, idx] = SEQ[S.step];
-  const key = S[team][type+'s'][idx];
-  if (key) {
-    S.used.delete(key);
-    S[team][type+'s'][idx] = null;
-    if (type === 'ban') {
-      const el = document.getElementById(`bs-${team}-${idx}`);
-      if (el) { el.innerHTML = '<div class="bx">✕</div>'; el.className = 'ban-slot'; }
+  // 진행 중 액션 하이라이트
+  document.querySelectorAll('.ban-card,.pslot').forEach(el=>el.classList.remove('active','inprogress'));
+  const inprog=actions.find(a=>a.inProgress&&a.championId===0);
+  if(inprog){
+    if(inprog.type==='ban'){
+      const banIdx=inprog.side==='blue'?blueBans.length:redBans.length;
+      const el=document.getElementById(`bc-${inprog.side}-${banIdx}`);
+      if(el) el.classList.add('active');
     } else {
-      const el = document.getElementById(`ps-${team}-${idx}`);
-      if (el) {
-        el.classList.remove('flipped','active');
-        const fr = el.querySelector('.front');
-        if (fr) { fr.querySelector('img').src = ''; fr.querySelector('.pname').textContent = ''; }
-      }
+      const el=document.getElementById(`ps-${inprog.side}-${inprog.idx}`);
+      if(el) el.classList.add('inprogress');
     }
   }
-  S.done = false;
-  lastPhase = '';
-  gsap.set(document.getElementById('revealWrap'), { opacity:0 });
-  startTimer();
-  updateUI();
-}
 
-function reset() {
-  if (!confirm('밴픽을 처음부터 다시 시작할까요?')) return;
-  stopTimer();
-  animBusy = false;
-  lastPhase = '';
-  S = newState(S.blue.name, S.red.name);
-  buildSlots();
-  updateNames();
-  gsap.set(document.getElementById('revealWrap'), { opacity:0 });
-  document.getElementById('centerHint').textContent = '챔피언을 선택하세요';
-  gsap.set(document.getElementById('completeBanner'), { scale:0 });
-  updateUI();
-  startTimer();
-}
-
-// ════════════════════════════════════════════════════════════
-//  OPERATOR PANEL
-// ════════════════════════════════════════════════════════════
-let opOpen = false;
-function toggleOp(force) {
-  opOpen = force !== undefined ? force : !opOpen;
-  document.getElementById('opPanel').classList.toggle('open', opOpen);
-  if (opOpen) updateGrid();
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Tab') { e.preventDefault(); toggleOp(); }
-  if (e.key === 'Escape') toggleOp(false);
-});
-
-// ════════════════════════════════════════════════════════════
-//  BOOT
-// ════════════════════════════════════════════════════════════
-(async () => {
-  initThree();
-  renderThree();
-
-  try {
-    await loadChamps();
-  } catch(err) {
-    document.getElementById('loadStatus').textContent = '❌ 로딩 실패: ' + err.message;
-    return;
+  // 타이머
+  if(session.timer){
+    const rem=Math.max(0,Math.round((session.timer.timeLeftInPhase||0)/1000));
+    const tv=document.getElementById('timerVal');
+    tv.textContent=rem;
+    tv.classList.toggle('warn',rem<=10);
+    document.getElementById('timerFill').style.transition='none';
+    document.getElementById('timerFill').style.width=((rem/30)*100)+'%';
   }
 
-  document.getElementById('loadScreen').style.display = 'none';
-  document.getElementById('setupScreen').style.display = 'flex';
+  // 페이즈 레이블
+  const totalBans=blueBans.length+redBans.length;
+  const totalPicks=actions.filter(a=>a.type==='pick'&&a.completed&&a.championId).length;
+  const phase=totalBans<6?'BAN PHASE 1':totalPicks<6?'PICK PHASE 1':totalBans<10?'BAN PHASE 2':'PICK PHASE 2';
+  document.getElementById('phaseLbl').textContent=phase;
 
-  document.getElementById('startBtn').onclick = () => {
-    const bn = document.getElementById('blueName').value.trim() || 'BLUE TEAM';
-    const rn = document.getElementById('redName').value.trim() || 'RED TEAM';
-    document.getElementById('setupScreen').style.display = 'none';
-    document.getElementById('mainUI').style.display = 'flex';
-    document.getElementById('opToggle').style.display = 'block';
+  // 차례 표시
+  if(inprog){
+    const b=document.getElementById('turnBadge');
+    b.className=inprog.side;
+    b.textContent=`${inprog.side==='blue'?'🔵 BLUE':'🔴 RED'} — ${inprog.type==='ban'?'밴':'픽'}`;
+  }
+}
 
-    S = newState(bn, rn);
-    buildSlots();
-    updateNames();
-    lastPhase = '';
-    updateUI();
-    startTimer();
+// ════════════════════════════════════════════════
+//  타이머 (수동 모드)
+// ════════════════════════════════════════════════
+let timerID=null, timerSec=30; const TL=30;
+
+function startTimer(){
+  if(lcuMode) return;
+  timerSec=TL;
+  const el=document.getElementById('timerVal'),fill=document.getElementById('timerFill');
+  el.classList.remove('warn'); el.textContent=timerSec;
+  fill.style.transition='none'; fill.style.width='100%';
+  clearInterval(timerID);
+  timerID=setInterval(()=>{
+    timerSec--;
+    el.textContent=timerSec;
+    fill.style.transition='width 1s linear'; fill.style.width=(timerSec/TL*100)+'%';
+    if(timerSec<=10) el.classList.add('warn');
+    if(timerSec<=0) stopTimer();
+  },1000);
+}
+function stopTimer(){
+  clearInterval(timerID);
+  if(!lcuMode){document.getElementById('timerVal').textContent='--';document.getElementById('timerVal').classList.remove('warn');document.getElementById('timerFill').style.width='0%';}
+}
+
+// ════════════════════════════════════════════════
+//  기타
+// ════════════════════════════════════════════════
+function flashPhase(p){
+  const fl=document.getElementById('phaseFlash'),t=document.getElementById('phaseFlashTxt');
+  t.textContent=p;
+  gsap.fromTo(fl,{opacity:0,scale:.82},{opacity:1,scale:1,duration:.28,ease:'power2.out',
+    onComplete:()=>gsap.to(fl,{opacity:0,duration:.5,delay:.55})});
+}
+function onComplete(){
+  document.getElementById('phaseLbl').textContent='DRAFT COMPLETE';
+  document.getElementById('centerHint').textContent='밴픽 완료';
+  document.getElementById('turnBadge').textContent='';
+  document.querySelectorAll('.ban-card,.pslot').forEach(el=>el.classList.remove('active','inprogress'));
+  const banner=document.getElementById('completeBanner');
+  gsap.to(banner,{scale:1,duration:.6,ease:'back.out(1.5)',delay:.3});
+  setTimeout(()=>gsap.to(banner,{scale:0,duration:.4,delay:3}),3000);
+}
+function undo(){
+  if(S.step===0||animBusy||lcuMode) return;
+  S.step--;
+  const[team,type,idx]=SEQ[S.step];
+  const key=S[team][type+'s'][idx];
+  if(key){
+    S.used.delete(key); S[team][type+'s'][idx]=null;
+    if(type==='ban'){const el=document.getElementById(`bc-${team}-${idx}`);if(el){el.querySelector('.bc').style.backgroundImage='';el.className='ban-card';}}
+    else{const el=document.getElementById(`ps-${team}-${idx}`);if(el){el.classList.remove('flipped','active','inprogress');const fr=el.querySelector('.front');if(fr){fr.querySelector('img').src='';fr.querySelector('.pname').textContent='';}}
+    }
+  }
+  S.done=false; lastPhase='';
+  gsap.set(document.getElementById('revealWrap'),{opacity:0});
+  startTimer(); updateUI();
+}
+function reset(){
+  if(!confirm('밴픽을 처음부터 다시 시작할까요?')) return;
+  stopTimer(); animBusy=false; lastPhase=''; lcuLastSig='';
+  S=newState(S.blue.name,S.red.name);
+  buildSlots(); updateNames();
+  gsap.set(document.getElementById('revealWrap'),{opacity:0});
+  document.getElementById('centerHint').textContent='챔피언을 선택하세요';
+  gsap.set(document.getElementById('completeBanner'),{scale:0});
+  updateUI(); startTimer();
+}
+
+let opOpen=false;
+function toggleOp(f){opOpen=f!==undefined?f:!opOpen;document.getElementById('opPanel').classList.toggle('open',opOpen);if(opOpen)updateGrid();}
+document.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();toggleOp();}if(e.key==='Escape')toggleOp(false);});
+
+// ════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════
+(async()=>{
+  initThree(); renderThree();
+  try{await loadChamps();}catch(err){document.getElementById('loadStatus').textContent='❌ 로딩 실패: '+err.message;return;}
+  document.getElementById('loadScreen').style.display='none';
+  document.getElementById('setupScreen').style.display='flex';
+
+  document.getElementById('startBtn').onclick=()=>{
+    const bn=document.getElementById('blueName').value.trim()||'BLUE TEAM';
+    const rn=document.getElementById('redName').value.trim()||'RED TEAM';
+    document.getElementById('setupScreen').style.display='none';
+    document.getElementById('mainUI').style.display='flex';
+    document.getElementById('lcuBar').style.display='flex';
+    document.getElementById('opToggle').style.display='block';
+    S=newState(bn,rn);
+    buildSlots(); updateNames(); lastPhase='';
+    updateUI(); startTimer();
+    connectWS();
     toggleOp(true);
   };
 
-  document.getElementById('opToggle').onclick = toggleOp;
-  document.getElementById('undoBtn').onclick   = undo;
-  document.getElementById('resetBtn').onclick  = reset;
-  document.getElementById('opSearch').oninput  = updateGrid;
+  document.getElementById('opToggle').onclick=toggleOp;
+  document.getElementById('undoBtn').onclick=undo;
+  document.getElementById('resetBtn').onclick=reset;
+  document.getElementById('opSearch').oninput=updateGrid;
 })();
 </script>
 </body>
