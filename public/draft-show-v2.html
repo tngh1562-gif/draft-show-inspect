@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>밴픽쇼 3D v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;600;700;900&family=Noto+Sans+KR:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#030510;font-family:'Noto Sans KR',sans-serif;color:#fff}
+
+/* ──── THREE.JS CANVAS ──── */
+#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ──── SCREENS ──── */
+.screen{position:fixed;inset:0;z-index:900;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;background:#030510}
+#loadScreen{}
+#setupScreen{display:none}
+.logo{font-family:'Rajdhani',sans-serif;font-size:3.2rem;font-weight:900;letter-spacing:8px;
+  background:linear-gradient(135deg,#4dafff,#c8a84b,#ff6655);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.sub-logo{font-size:.9rem;letter-spacing:4px;color:rgba(148,163,184,.6);margin-top:-18px}
+.load-bar-wrap{width:300px;height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.load-bar{height:100%;background:linear-gradient(90deg,#1a6ef0,#c8a84b,#e03020);width:0;transition:width .3s;border-radius:2px}
+.load-status{font-size:.82rem;color:rgba(148,163,184,.5);letter-spacing:1px}
+
+/* setup */
+.setup-teams{display:flex;gap:48px;align-items:center}
+.setup-team{display:flex;flex-direction:column;align-items:center;gap:10px}
+.setup-team label{font-size:.8rem;letter-spacing:3px;font-weight:700}
+.st-blue label{color:#4dafff}.st-red label{color:#ff6655}
+.setup-team input{background:rgba(20,30,60,.9);border:1px solid rgba(77,159,255,.3);color:#fff;
+  padding:10px 20px;border-radius:6px;font-size:1.1rem;text-align:center;
+  font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;outline:none;width:200px}
+.st-red input{border-color:rgba(220,60,40,.3)}
+.setup-vs{font-family:'Rajdhani',sans-serif;font-size:2.2rem;font-weight:900;color:rgba(200,168,75,.4);letter-spacing:4px}
+.setup-start{background:linear-gradient(135deg,rgba(200,168,75,.25),rgba(200,168,75,.1));
+  border:1px solid rgba(200,168,75,.5);color:rgba(200,168,75,.95);
+  padding:12px 44px;border-radius:8px;font-size:1rem;font-weight:700;
+  letter-spacing:4px;cursor:pointer;font-family:'Rajdhani',sans-serif;text-transform:uppercase;
+  transition:all .2s}
+.setup-start:hover{background:rgba(200,168,75,.3);box-shadow:0 0 40px rgba(200,168,75,.25)}
+
+/* ──── MAIN UI ──── */
+#mainUI{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;padding:10px 14px;gap:6px;pointer-events:none}
+
+/* header */
+#header{display:flex;align-items:center;justify-content:center;gap:20px;flex-shrink:0;padding:2px 0 4px}
+.phase-label{font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:600;letter-spacing:4px;
+  color:rgba(200,168,75,.7);text-transform:uppercase;min-width:140px;text-align:center}
+#timerWrap{display:flex;flex-direction:column;align-items:center;gap:2px}
+#timerVal{font-family:'Rajdhani',sans-serif;font-size:2.8rem;font-weight:900;color:#fff;line-height:1;min-width:60px;text-align:center;
+  text-shadow:0 0 30px rgba(200,168,75,.5)}
+#timerVal.warn{color:#ff4444;text-shadow:0 0 30px rgba(255,68,68,.7);animation:timerPulse .5s ease-in-out infinite alternate}
+#timerBar{width:60px;height:3px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden}
+#timerFill{height:100%;background:rgba(200,168,75,.8);width:100%;transition:width 1s linear;border-radius:2px}
+#turnBadge{font-family:'Rajdhani',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:3px;
+  padding:4px 16px;border-radius:20px;border:1px solid;min-width:140px;text-align:center}
+#turnBadge.blue{color:#4dafff;border-color:rgba(77,159,255,.4);background:rgba(26,110,240,.12)}
+#turnBadge.red{color:#ff6655;border-color:rgba(255,100,80,.4);background:rgba(220,60,40,.12)}
+
+/* ban row */
+#banRow{display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:10px}
+.ban-slots{display:flex;gap:5px}
+.ban-slot{width:48px;height:48px;border-radius:4px;background:rgba(10,15,30,.8);
+  border:2px solid rgba(148,163,184,.15);overflow:hidden;position:relative;transition:all .3s;flex-shrink:0}
+.ban-slot.active{border-color:gold;box-shadow:0 0 14px rgba(255,215,0,.6);animation:pulseGlow 1s ease-in-out infinite}
+.ban-slot img{width:100%;height:100%;object-fit:cover;filter:grayscale(.2) brightness(.75)}
+.ban-slot .bx{position:absolute;inset:0;background:rgba(160,20,20,.55);display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;color:#fff;opacity:0;transition:opacity .3s}
+.ban-slot.done .bx{opacity:1}
+.ban-slot.done.blue-ban{border-color:rgba(77,159,255,.4)}
+.ban-slot.done.red-ban{border-color:rgba(255,100,80,.4)}
+.ban-mid{font-family:'Rajdhani',sans-serif;font-size:.75rem;letter-spacing:2px;color:rgba(200,168,75,.4);text-align:center;white-space:nowrap}
+
+/* arena */
+#arena{flex:1;display:flex;gap:0;min-height:0}
+
+/* team panels */
+.team-panel{width:155px;flex-shrink:0;display:flex;flex-direction:column;gap:0;padding:0 8px}
+.team-hdr{font-family:'Rajdhani',sans-serif;font-size:1.2rem;font-weight:900;letter-spacing:3px;
+  text-align:center;padding:4px 0 8px;text-transform:uppercase}
+.blue .team-hdr{color:#4dafff;text-shadow:0 0 20px rgba(77,159,255,.5)}
+.red .team-hdr{color:#ff6655;text-shadow:0 0 20px rgba(255,100,80,.5)}
+.pick-slots{display:flex;flex-direction:column;gap:5px;flex:1;min-height:0}
+
+/* pick slot */
+.pslot{flex:1;border-radius:6px;background:rgba(8,12,25,.7);border:2px solid rgba(148,163,184,.1);
+  overflow:hidden;position:relative;perspective:700px;transition:border-color .3s,box-shadow .3s;min-height:0}
+.pslot.active{box-shadow:0 0 18px rgba(77,159,255,.5);animation:pulseGlow 1s ease-in-out infinite}
+.blue .pslot.active{border-color:#4dafff;box-shadow:0 0 18px rgba(77,159,255,.5)}
+.red .pslot.active{border-color:#ff6655;box-shadow:0 0 18px rgba(255,100,80,.5)}
+.pslot .ci{width:100%;height:100%;transform-style:preserve-3d;transition:transform .65s cubic-bezier(.4,0,.2,1);position:relative}
+.pslot.flipped .ci{transform:rotateY(180deg)}
+.pslot .face{position:absolute;inset:0;backface-visibility:hidden;border-radius:4px;overflow:hidden}
+.pslot .back{background:linear-gradient(160deg,rgba(14,20,40,.95),rgba(6,10,22,.95))}
+.blue .pslot .back{border-left:3px solid rgba(26,110,240,.3)}
+.red .pslot .back{border-right:3px solid rgba(220,60,40,.3)}
+.pslot .front{transform:rotateY(180deg);background:#000}
+.pslot .front img{width:100%;height:100%;object-fit:cover;object-position:center 10%}
+.pslot .front .pname{position:absolute;bottom:0;left:0;right:0;padding:3px 5px;
+  background:linear-gradient(transparent,rgba(0,0,0,.88));font-size:.6rem;font-weight:700;
+  text-align:center;letter-spacing:.5px;text-shadow:0 1px 4px rgba(0,0,0,.9)}
+
+/* center stage */
+#center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;position:relative;min-width:0}
+#revealWrap{width:min(250px,100%);aspect-ratio:9/16;border-radius:12px;overflow:hidden;
+  border:2px solid rgba(200,168,75,.3);
+  box-shadow:0 30px 80px rgba(0,0,0,.9),0 0 40px rgba(200,168,75,.15);
+  opacity:0;transform:perspective(900px) rotateX(8deg) scale(.85);
+  transition:none;position:relative}
+#revealWrap img{width:100%;height:100%;object-fit:cover;object-position:center 5%}
+#revealWrap .rovl{position:absolute;inset:0;background:linear-gradient(transparent 45%,rgba(0,0,0,.75))}
+#revealWrap .rname{position:absolute;bottom:18px;left:0;right:0;text-align:center;
+  font-family:'Rajdhani',sans-serif;font-size:1.5rem;font-weight:900;letter-spacing:3px;
+  text-transform:uppercase;text-shadow:0 2px 12px rgba(0,0,0,.9)}
+#revealWrap .rshine{position:absolute;inset:0;
+  background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.28) 50%,transparent 70%);
+  transform:translateX(-120%);pointer-events:none}
+#centerHint{font-family:'Rajdhani',sans-serif;font-size:.95rem;letter-spacing:3px;
+  color:rgba(148,163,184,.45);text-align:center;text-transform:uppercase}
+
+/* ──── OP PANEL ──── */
+#opPanel{position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:rgba(4,7,18,.97);border-top:1px solid rgba(77,159,255,.2);
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);
+  max-height:58vh;display:flex;flex-direction:column;pointer-events:all}
+#opPanel.open{transform:translateY(0)}
+#opBar{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+#opSearch{flex:1;background:rgba(15,22,50,.9);border:1px solid rgba(77,159,255,.3);
+  color:#fff;padding:7px 12px;border-radius:5px;font-size:.9rem;font-family:'Noto Sans KR',sans-serif;outline:none}
+#opSearch::placeholder{color:rgba(148,163,184,.4)}
+#opInfo{font-family:'Rajdhani',sans-serif;font-size:.85rem;letter-spacing:1px;color:rgba(200,168,75,.75);min-width:170px}
+.obtn{background:rgba(77,159,255,.12);border:1px solid rgba(77,159,255,.3);color:#4dafff;
+  padding:5px 12px;border-radius:4px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;font-size:.78rem;transition:all .15s;white-space:nowrap}
+.obtn:hover{background:rgba(77,159,255,.22)}
+.obtn.danger{background:rgba(220,60,40,.12);border-color:rgba(220,60,40,.3);color:#ff6655}
+#champGrid{flex:1;overflow-y:auto;padding:10px;
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:5px}
+.cgcard{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;
+  padding:4px;border-radius:6px;border:1px solid transparent;transition:all .12s}
+.cgcard:hover{background:rgba(77,159,255,.12);border-color:rgba(77,159,255,.3)}
+.cgcard.used{opacity:.25;pointer-events:none}
+.cgcard img{width:56px;height:56px;border-radius:3px;object-fit:cover}
+.cgcard span{font-size:.55rem;color:rgba(190,205,225,.65);text-align:center;line-height:1.2;max-width:68px;word-break:keep-all}
+#champGrid::-webkit-scrollbar{width:5px}
+#champGrid::-webkit-scrollbar-track{background:rgba(0,0,0,.2)}
+#champGrid::-webkit-scrollbar-thumb{background:rgba(77,159,255,.25);border-radius:3px}
+
+/* toggle btn */
+#opToggle{position:fixed;bottom:8px;right:10px;z-index:300;
+  background:rgba(77,159,255,.15);border:1px solid rgba(77,159,255,.35);
+  color:#4dafff;padding:5px 10px;border-radius:4px;cursor:pointer;
+  font-family:'Noto Sans KR',sans-serif;font-size:.75rem;display:none;pointer-events:all;transition:all .2s}
+#opToggle:hover{background:rgba(77,159,255,.28)}
+
+/* ──── ANIMATIONS ──── */
+@keyframes pulseGlow{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes timerPulse{from{opacity:1}to{opacity:.4}}
+@keyframes phaseFade{0%{opacity:0;transform:scale(.9)}30%{opacity:1;transform:scale(1)}70%{opacity:1}100%{opacity:0;transform:scale(1.05)}}
+
+/* phase flash overlay */
+#phaseFlash{position:fixed;inset:0;z-index:400;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;opacity:0}
+#phaseFlashText{font-family:'Rajdhani',sans-serif;font-size:4rem;font-weight:900;
+  letter-spacing:10px;text-transform:uppercase;
+  background:linear-gradient(135deg,#fff,rgba(200,168,75,.9));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  text-align:center}
+
+/* complete banner */
+#completeBanner{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  z-index:450;text-align:center;pointer-events:none}
+#completeBanner h1{font-family:'Rajdhani',sans-serif;font-size:4rem;font-weight:900;
+  letter-spacing:8px;color:rgba(200,168,75,.95);text-shadow:0 0 60px rgba(200,168,75,.4)}
+</style>
+</head>
+<body>
+
+<!-- Three.js background -->
+<canvas id="bgCanvas"></canvas>
+
+<!-- Load screen -->
+<div id="loadScreen" class="screen">
+  <div class="logo">BANPICK 3D</div>
+  <div class="sub-logo">LEAGUE OF LEGENDS DRAFT SHOW</div>
+  <div class="load-bar-wrap"><div class="load-bar" id="loadBar"></div></div>
+  <div class="load-status" id="loadStatus">챔피언 데이터 로딩 중...</div>
+</div>
+
+<!-- Setup screen -->
+<div id="setupScreen" class="screen">
+  <div class="logo">BANPICK 3D</div>
+  <div class="setup-teams">
+    <div class="setup-team st-blue">
+      <label>BLUE TEAM</label>
+      <input id="blueName" value="BLUE TEAM" maxlength="20" autocomplete="off">
+    </div>
+    <div class="setup-vs">VS</div>
+    <div class="setup-team st-red">
+      <label>RED TEAM</label>
+      <input id="redName" value="RED TEAM" maxlength="20" autocomplete="off">
+    </div>
+  </div>
+  <button class="setup-start" id="startBtn">▶ 밴픽 시작</button>
+</div>
+
+<!-- Main UI -->
+<div id="mainUI">
+  <div id="header">
+    <div class="phase-label" id="phaseLbl">BAN PHASE 1</div>
+    <div id="timerWrap">
+      <div id="timerVal">30</div>
+      <div id="timerBar"><div id="timerFill"></div></div>
+    </div>
+    <div id="turnBadge" class="blue">BLUE TURN</div>
+  </div>
+
+  <div id="banRow">
+    <div class="ban-slots" id="blueBans"></div>
+    <div class="ban-mid" id="banMid">BAN PHASE</div>
+    <div class="ban-slots" id="redBans"></div>
+  </div>
+
+  <div id="arena">
+    <div class="team-panel blue" id="bluePanel">
+      <div class="team-hdr" id="blueHdr">BLUE</div>
+      <div class="pick-slots" id="bluePicks"></div>
+    </div>
+    <div id="center">
+      <div id="revealWrap">
+        <img id="revealImg" src="" alt="">
+        <div class="rovl"></div>
+        <div class="rname" id="revealName"></div>
+        <div class="rshine" id="rshine"></div>
+      </div>
+      <div id="centerHint">챔피언을 선택하세요</div>
+    </div>
+    <div class="team-panel red" id="redPanel">
+      <div class="team-hdr" id="redHdr">RED</div>
+      <div class="pick-slots" id="redPicks"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Phase flash -->
+<div id="phaseFlash"><div id="phaseFlashText"></div></div>
+
+<!-- Complete banner -->
+<div id="completeBanner"><h1>DRAFT COMPLETE</h1></div>
+
+<!-- Op toggle -->
+<button id="opToggle">⚙ 운영자 [TAB]</button>
+
+<!-- Operator panel -->
+<div id="opPanel">
+  <div id="opBar">
+    <input id="opSearch" placeholder="🔍 챔피언 검색..." autocomplete="off">
+    <div id="opInfo">대기 중</div>
+    <button class="obtn" id="undoBtn">↩ 되돌리기</button>
+    <button class="obtn danger" id="resetBtn">⟳ 초기화</button>
+  </div>
+  <div id="champGrid"></div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  THREE.JS — 3D BACKGROUND SCENE
+// ════════════════════════════════════════════════════════════
+let renderer, scene, camera, particles, clock;
+let mx = 0, my = 0;
+
+function initThree() {
+  const canvas = document.getElementById('bgCanvas');
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setClearColor(0x030510);
+
+  scene = new THREE.Scene();
+  scene.fog = new THREE.FogExp2(0x030510, 0.007);
+  clock = new THREE.Clock();
+
+  camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, .1, 300);
+  camera.position.set(0, 0, 60);
+
+  // ── particle system ──
+  const N = 1800;
+  const pos = new Float32Array(N * 3);
+  const col = new Float32Array(N * 3);
+  const sz  = new Float32Array(N);
+  for (let i = 0; i < N; i++) {
+    pos[i*3]   = (Math.random()-.5)*200;
+    pos[i*3+1] = (Math.random()-.5)*110;
+    pos[i*3+2] = (Math.random()-.5)*100;
+    const blue = Math.random() > .45;
+    if (blue) { col[i*3]=.08+Math.random()*.15; col[i*3+1]=.35+Math.random()*.3; col[i*3+2]=.7+Math.random()*.3; }
+    else       { col[i*3]=.65+Math.random()*.35; col[i*3+1]=.08+Math.random()*.1; col[i*3+2]=.04+Math.random()*.08; }
+    sz[i] = Math.random() * 1.4 + .3;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color',    new THREE.BufferAttribute(col, 3));
+  geo.setAttribute('size',     new THREE.BufferAttribute(sz,  1));
+  const mat = new THREE.PointsMaterial({ size:.7, vertexColors:true, transparent:true, opacity:.55, sizeAttenuation:true, depthWrite:false });
+  particles = new THREE.Points(geo, mat);
+  scene.add(particles);
+
+  // ── floor grid ──
+  const grid = new THREE.GridHelper(200, 24, 0x0d1b3a, 0x080e22);
+  grid.position.y = -28;
+  scene.add(grid);
+
+  // ── vertical light beams ──
+  const bGeo = new THREE.PlaneGeometry(1.2, 70);
+  [-35,-18,0,18,35].forEach((x, i) => {
+    const m = new THREE.MeshBasicMaterial({
+      color: i % 2 === 0 ? 0x1a6ef0 : 0xe03020,
+      transparent:true, opacity:.04+Math.random()*.04, side:THREE.DoubleSide, depthWrite:false
+    });
+    const b = new THREE.Mesh(bGeo, m);
+    b.position.set(x, 5, -30 + Math.random()*12);
+    b.rotation.z = (Math.random()-.5)*.25;
+    scene.add(b);
+  });
+
+  // ── floating 3D champion "orbs" (sphere geometry with team glow) ──
+  const orbGeo = new THREE.SphereGeometry(1.2, 12, 12);
+  [[-40,0,-15],[40,0,-15],[-25,15,-20],[25,15,-20],[0,-15,-10]].forEach(([x,y,z]) => {
+    const blue = x < 0;
+    const m = new THREE.MeshBasicMaterial({ color: blue ? 0x1a4080 : 0x801820, transparent:true, opacity:.18+Math.random()*.12 });
+    const o = new THREE.Mesh(orbGeo, m);
+    o.position.set(x,y,z);
+    o.userData.oy = y;
+    o.userData.speed = .4 + Math.random()*.4;
+    scene.add(o);
+  });
+
+  window.addEventListener('mousemove', e => { mx = (e.clientX/innerWidth-.5)*2; my = (e.clientY/innerHeight-.5)*2; });
+  window.addEventListener('resize', () => {
+    camera.aspect = innerWidth/innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+}
+
+function renderThree() {
+  requestAnimationFrame(renderThree);
+  const t = clock.getElapsedTime();
+  particles.rotation.y = t * .025;
+  particles.rotation.x = Math.sin(t * .018) * .04;
+  scene.children.forEach(o => {
+    if (o.userData.oy !== undefined) {
+      o.position.y = o.userData.oy + Math.sin(t * o.userData.speed + o.position.x) * 2.5;
+    }
+  });
+  camera.position.x += (mx*4 - camera.position.x) * .025;
+  camera.position.y += (-my*2.5 - camera.position.y) * .025;
+  camera.lookAt(0, 0, 0);
+  renderer.render(scene, camera);
+}
+
+// ════════════════════════════════════════════════════════════
+//  RIOT DATA DRAGON
+// ════════════════════════════════════════════════════════════
+let champData = {};
+let DDV = '14.10.1';
+
+async function loadChamps() {
+  setLoad(10, '최신 패치 버전 확인 중...');
+  try {
+    const r = await fetch('https://ddragon.leagueoflegends.com/api/versions.json');
+    DDV = (await r.json())[0];
+  } catch(_) {}
+
+  setLoad(35, `챔피언 목록 로딩 중... (${DDV})`);
+  const r = await fetch(`https://ddragon.leagueoflegends.com/cdn/${DDV}/data/ko_KR/champion.json`);
+  const j = await r.json();
+  Object.values(j.data).forEach(c => {
+    champData[c.id] = { id: c.id, name: c.name };
+  });
+
+  setLoad(90, '준비 완료!');
+  await new Promise(r => setTimeout(r, 400));
+  setLoad(100, '');
+}
+
+function setLoad(p, msg) {
+  document.getElementById('loadBar').style.width = p + '%';
+  document.getElementById('loadStatus').textContent = msg;
+}
+
+const iconUrl  = k => `https://ddragon.leagueoflegends.com/cdn/${DDV}/img/champion/${k}.png`;
+const splashUrl = k => `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${k}_0.jpg`;
+
+// ════════════════════════════════════════════════════════════
+//  DRAFT STATE  (standard competitive: 10 bans, 10 picks)
+// ════════════════════════════════════════════════════════════
+// [team, type, slotIdx, phaseLabel]
+const SEQ = [
+  ['blue','ban',0,'BAN PHASE 1'],['red','ban',0,'BAN PHASE 1'],
+  ['blue','ban',1,'BAN PHASE 1'],['red','ban',1,'BAN PHASE 1'],
+  ['blue','ban',2,'BAN PHASE 1'],['red','ban',2,'BAN PHASE 1'],
+  ['blue','pick',0,'PICK PHASE 1'],
+  ['red','pick',0,'PICK PHASE 1'],['red','pick',1,'PICK PHASE 1'],
+  ['blue','pick',1,'PICK PHASE 1'],['blue','pick',2,'PICK PHASE 1'],
+  ['red','pick',2,'PICK PHASE 1'],
+  ['red','ban',3,'BAN PHASE 2'],['blue','ban',3,'BAN PHASE 2'],
+  ['red','ban',4,'BAN PHASE 2'],['blue','ban',4,'BAN PHASE 2'],
+  ['red','pick',3,'PICK PHASE 2'],
+  ['blue','pick',3,'PICK PHASE 2'],['blue','pick',4,'PICK PHASE 2'],
+  ['red','pick',4,'PICK PHASE 2'],
+];
+
+let S = {};
+function newState(bname, rname) {
+  return {
+    step: 0, done: false,
+    blue: { name: bname, bans: Array(5).fill(null), picks: Array(5).fill(null) },
+    red:  { name: rname, bans: Array(5).fill(null), picks: Array(5).fill(null) },
+    used: new Set(),
+  };
+}
+
+// ════════════════════════════════════════════════════════════
+//  BUILD SLOTS
+// ════════════════════════════════════════════════════════════
+function buildSlots() {
+  ['blue','red'].forEach(t => {
+    const bEl = document.getElementById(t+'Bans');
+    bEl.innerHTML = '';
+    for (let i=0;i<5;i++) {
+      const d = document.createElement('div');
+      d.className = 'ban-slot';
+      d.id = `bs-${t}-${i}`;
+      d.innerHTML = '<div class="bx">✕</div>';
+      bEl.appendChild(d);
+    }
+    const pEl = document.getElementById(t+'Picks');
+    pEl.innerHTML = '';
+    for (let i=0;i<5;i++) {
+      const d = document.createElement('div');
+      d.className = 'pslot';
+      d.id = `ps-${t}-${i}`;
+      d.innerHTML = `<div class="ci"><div class="face back"></div><div class="face front"><img src="" alt=""><div class="pname"></div></div></div>`;
+      pEl.appendChild(d);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════
+//  UPDATE UI
+// ════════════════════════════════════════════════════════════
+let lastPhase = '';
+
+function updateUI() {
+  if (S.done) return;
+  const [team, type, idx, phase] = SEQ[S.step];
+
+  // phase change flash
+  if (phase !== lastPhase) {
+    lastPhase = phase;
+    flashPhase(phase);
+  }
+
+  // header
+  document.getElementById('phaseLbl').textContent = phase;
+  const badge = document.getElementById('turnBadge');
+  badge.textContent = `${team === 'blue' ? '🔵 BLUE' : '🔴 RED'} — ${type === 'ban' ? '밴' : '픽'}`;
+  badge.className = team;
+
+  // clear active highlights
+  document.querySelectorAll('.ban-slot,.pslot').forEach(el => el.classList.remove('active'));
+
+  // set active slot
+  const activeEl = document.getElementById(type === 'ban' ? `bs-${team}-${idx}` : `ps-${team}-${idx}`);
+  if (activeEl) activeEl.classList.add('active');
+
+  // fill already-done slots
+  ['blue','red'].forEach(t => {
+    S[t].bans.forEach((k,i) => {
+      if (!k) return;
+      const el = document.getElementById(`bs-${t}-${i}`);
+      if (!el || el.classList.contains('done')) return;
+      el.classList.add('done', `${t}-ban`);
+      const img = document.createElement('img');
+      img.src = iconUrl(k);
+      el.insertBefore(img, el.firstChild);
+    });
+  });
+
+  // center hint
+  document.getElementById('centerHint').textContent =
+    `${team === 'blue' ? '🔵 BLUE' : '🔴 RED'} ${type === 'ban' ? '밴' : '픽'} 선택`;
+
+  // op info
+  document.getElementById('opInfo').textContent =
+    `${team === 'blue' ? '🔵 블루' : '🔴 레드'} ${type === 'ban' ? '밴' : '픽'} (${S.step+1}/${SEQ.length})`;
+
+  updateGrid();
+}
+
+function updateGrid() {
+  const q = document.getElementById('opSearch').value.toLowerCase().trim();
+  const grid = document.getElementById('champGrid');
+  grid.innerHTML = '';
+  const list = Object.values(champData).sort((a,b) => a.name.localeCompare(b.name,'ko'));
+  list.forEach(({ id, name }) => {
+    if (q && !name.toLowerCase().includes(q) && !id.toLowerCase().includes(q)) return;
+    const d = document.createElement('div');
+    d.className = 'cgcard' + (S.used.has(id) ? ' used' : '');
+    d.innerHTML = `<img src="${iconUrl(id)}" alt="${name}" loading="lazy"><span>${name}</span>`;
+    d.onclick = () => pick(id);
+    grid.appendChild(d);
+  });
+}
+
+function updateNames() {
+  document.getElementById('blueHdr').textContent = S.blue.name;
+  document.getElementById('redHdr').textContent  = S.red.name;
+}
+
+// ════════════════════════════════════════════════════════════
+//  PICK / BAN
+// ════════════════════════════════════════════════════════════
+let animBusy = false;
+
+function pick(key) {
+  if (S.done || animBusy || S.used.has(key)) return;
+  const [team, type, idx] = SEQ[S.step];
+  S[team][type+'s'][idx] = key;
+  S.used.add(key);
+
+  stopTimer();
+  animBusy = true;
+
+  revealChamp(key, team, type, idx, () => {
+    animBusy = false;
+    S.step++;
+    if (S.step >= SEQ.length) {
+      S.done = true;
+      onComplete();
+    } else {
+      updateUI();
+      startTimer();
+    }
+  });
+
+  // immediately update picked state in UI (for re-render during animation)
+  updateUI();
+}
+
+// ════════════════════════════════════════════════════════════
+//  REVEAL ANIMATION  (3D card reveal + shine)
+// ════════════════════════════════════════════════════════════
+function revealChamp(key, team, type, idx, cb) {
+  const rw    = document.getElementById('revealWrap');
+  const img   = document.getElementById('revealImg');
+  const name  = document.getElementById('revealName');
+  const shine = document.getElementById('rshine');
+  const hint  = document.getElementById('centerHint');
+
+  img.src  = splashUrl(key);
+  name.textContent = champData[key]?.name || key;
+
+  const glow = team === 'blue'
+    ? '0 30px 80px rgba(0,0,0,.9),0 0 50px rgba(77,159,255,.45)'
+    : '0 30px 80px rgba(0,0,0,.9),0 0 50px rgba(255,100,80,.45)';
+  const bord = team === 'blue' ? 'rgba(77,159,255,.6)' : 'rgba(255,100,80,.6)';
+  rw.style.boxShadow   = glow;
+  rw.style.borderColor = bord;
+
+  gsap.set(hint, { opacity:0 });
+  gsap.set(rw, { opacity:0, scale:.78, rotateX:20, rotateY: team==='blue'?-8:8 });
+  gsap.set(shine, { x:'-120%' });
+
+  const onReady = () => {
+    // 3D fly-in
+    gsap.to(rw, { opacity:1, scale:1, rotateX:4, rotateY:0, duration:.55, ease:'back.out(1.5)',
+      onComplete: () => {
+        // shine sweep
+        gsap.to(shine, { x:'220%', duration:.55, ease:'power2.inOut', delay:.05,
+          onComplete: () => {
+            // hold → fill slot → fade out
+            setTimeout(() => {
+              fillSlot(key, team, type, idx);
+              gsap.to(rw, { opacity:0, scale:.9, duration:.3, delay:.25,
+                onComplete: () => {
+                  gsap.to(hint, { opacity:1, duration:.2 });
+                  cb();
+                }
+              });
+            }, 550);
+          }
+        });
+      }
+    });
+  };
+
+  if (img.complete && img.naturalHeight > 0) { onReady(); }
+  else { img.onload = onReady; img.onerror = () => { gsap.set(rw, { opacity:0 }); cb(); }; }
+}
+
+function fillSlot(key, team, type, idx) {
+  if (type === 'ban') {
+    const el = document.getElementById(`bs-${team}-${idx}`);
+    if (!el) return;
+    el.classList.remove('active');
+    el.classList.add('done', `${team}-ban`);
+    if (!el.querySelector('img')) {
+      const img = document.createElement('img');
+      img.src = iconUrl(key);
+      el.insertBefore(img, el.firstChild);
+    }
+  } else {
+    const el = document.getElementById(`ps-${team}-${idx}`);
+    if (!el) return;
+    const fr = el.querySelector('.front');
+    if (!fr) return;
+    fr.querySelector('img').src = splashUrl(key);
+    fr.querySelector('.pname').textContent = champData[key]?.name || key;
+    requestAnimationFrame(() => el.classList.add('flipped'));
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  PHASE FLASH
+// ════════════════════════════════════════════════════════════
+function flashPhase(phase) {
+  const fl   = document.getElementById('phaseFlash');
+  const ftxt = document.getElementById('phaseFlashText');
+  ftxt.textContent = phase;
+  gsap.fromTo(fl,
+    { opacity:0, scale:.85 },
+    { opacity:1, scale:1, duration:.3, ease:'power2.out',
+      onComplete: () => gsap.to(fl, { opacity:0, duration:.5, delay:.6 })
+    }
+  );
+}
+
+// ════════════════════════════════════════════════════════════
+//  TIMER
+// ════════════════════════════════════════════════════════════
+let timerID = null, timerSec = 30;
+const TLIMIT = 30;
+
+function startTimer() {
+  timerSec = TLIMIT;
+  const el   = document.getElementById('timerVal');
+  const fill = document.getElementById('timerFill');
+  el.classList.remove('warn');
+  el.textContent = timerSec;
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+
+  clearInterval(timerID);
+  timerID = setInterval(() => {
+    timerSec--;
+    el.textContent = timerSec;
+    fill.style.transition = 'width 1s linear';
+    fill.style.width = (timerSec / TLIMIT * 100) + '%';
+    if (timerSec <= 10) el.classList.add('warn');
+    if (timerSec <= 0) stopTimer();
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerID);
+  document.getElementById('timerVal').textContent = '--';
+  document.getElementById('timerVal').classList.remove('warn');
+  document.getElementById('timerFill').style.width = '0%';
+}
+
+// ════════════════════════════════════════════════════════════
+//  DRAFT COMPLETE
+// ════════════════════════════════════════════════════════════
+function onComplete() {
+  document.getElementById('phaseLbl').textContent = 'DRAFT COMPLETE';
+  document.getElementById('centerHint').textContent = '밴픽 완료';
+  document.getElementById('turnBadge').textContent = '';
+  document.querySelectorAll('.ban-slot,.pslot').forEach(el => el.classList.remove('active'));
+  const banner = document.getElementById('completeBanner');
+  gsap.to(banner, { scale:1, duration:.6, ease:'back.out(1.5)', delay:.3 });
+  setTimeout(() => gsap.to(banner, { scale:0, duration:.4, delay:3 }), 3000);
+}
+
+// ════════════════════════════════════════════════════════════
+//  UNDO / RESET
+// ════════════════════════════════════════════════════════════
+function undo() {
+  if (S.step === 0 || animBusy) return;
+  S.step--;
+  const [team, type, idx] = SEQ[S.step];
+  const key = S[team][type+'s'][idx];
+  if (key) {
+    S.used.delete(key);
+    S[team][type+'s'][idx] = null;
+    if (type === 'ban') {
+      const el = document.getElementById(`bs-${team}-${idx}`);
+      if (el) { el.innerHTML = '<div class="bx">✕</div>'; el.className = 'ban-slot'; }
+    } else {
+      const el = document.getElementById(`ps-${team}-${idx}`);
+      if (el) {
+        el.classList.remove('flipped','active');
+        const fr = el.querySelector('.front');
+        if (fr) { fr.querySelector('img').src = ''; fr.querySelector('.pname').textContent = ''; }
+      }
+    }
+  }
+  S.done = false;
+  lastPhase = '';
+  gsap.set(document.getElementById('revealWrap'), { opacity:0 });
+  startTimer();
+  updateUI();
+}
+
+function reset() {
+  if (!confirm('밴픽을 처음부터 다시 시작할까요?')) return;
+  stopTimer();
+  animBusy = false;
+  lastPhase = '';
+  S = newState(S.blue.name, S.red.name);
+  buildSlots();
+  updateNames();
+  gsap.set(document.getElementById('revealWrap'), { opacity:0 });
+  document.getElementById('centerHint').textContent = '챔피언을 선택하세요';
+  gsap.set(document.getElementById('completeBanner'), { scale:0 });
+  updateUI();
+  startTimer();
+}
+
+// ════════════════════════════════════════════════════════════
+//  OPERATOR PANEL
+// ════════════════════════════════════════════════════════════
+let opOpen = false;
+function toggleOp(force) {
+  opOpen = force !== undefined ? force : !opOpen;
+  document.getElementById('opPanel').classList.toggle('open', opOpen);
+  if (opOpen) updateGrid();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Tab') { e.preventDefault(); toggleOp(); }
+  if (e.key === 'Escape') toggleOp(false);
+});
+
+// ════════════════════════════════════════════════════════════
+//  BOOT
+// ════════════════════════════════════════════════════════════
+(async () => {
+  initThree();
+  renderThree();
+
+  try {
+    await loadChamps();
+  } catch(err) {
+    document.getElementById('loadStatus').textContent = '❌ 로딩 실패: ' + err.message;
+    return;
+  }
+
+  document.getElementById('loadScreen').style.display = 'none';
+  document.getElementById('setupScreen').style.display = 'flex';
+
+  document.getElementById('startBtn').onclick = () => {
+    const bn = document.getElementById('blueName').value.trim() || 'BLUE TEAM';
+    const rn = document.getElementById('redName').value.trim() || 'RED TEAM';
+    document.getElementById('setupScreen').style.display = 'none';
+    document.getElementById('mainUI').style.display = 'flex';
+    document.getElementById('opToggle').style.display = 'block';
+
+    S = newState(bn, rn);
+    buildSlots();
+    updateNames();
+    lastPhase = '';
+    updateUI();
+    startTimer();
+    toggleOp(true);
+  };
+
+  document.getElementById('opToggle').onclick = toggleOp;
+  document.getElementById('undoBtn').onclick   = undo;
+  document.getElementById('resetBtn').onclick  = reset;
+  document.getElementById('opSearch').oninput  = updateGrid;
+})();
+</script>
+</body>
+</html>
