@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>3D 챔피언 리뷰 — 데모</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;overflow:hidden;width:100vw;height:100vh;font-family:'Rajdhani',sans-serif;color:#fff}
+canvas{display:block;position:fixed;inset:0}
+#overlay{position:fixed;inset:0;pointer-events:none;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:120px}
+#champName{font-size:3.2rem;font-weight:900;letter-spacing:8px;text-transform:uppercase;
+  opacity:0;transition:opacity .6s;text-align:center;
+  text-shadow:0 0 60px currentColor,0 0 30px currentColor}
+#teamBadge{font-size:.78rem;letter-spacing:4px;padding:4px 20px;border-radius:20px;
+  border:1px solid;margin-top:8px;opacity:0;transition:opacity .5s;text-align:center}
+#phase{position:fixed;top:24px;left:50%;transform:translateX(-50%);
+  font-size:.75rem;letter-spacing:5px;color:rgba(200,168,75,.5);text-transform:uppercase}
+#ui{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);
+  display:flex;gap:10px;z-index:20}
+.btn{padding:8px 20px;border-radius:6px;cursor:pointer;
+  font-family:'Rajdhani',sans-serif;font-size:.82rem;letter-spacing:3px;font-weight:700;border:1px solid;transition:all .2s}
+.b{background:rgba(26,110,240,.15);border-color:rgba(77,159,255,.4);color:#4dafff}
+.b:hover{background:rgba(26,110,240,.3)}
+.r{background:rgba(220,60,40,.15);border-color:rgba(255,100,80,.4);color:#ff6655}
+.r:hover{background:rgba(220,60,40,.3)}
+.g{background:rgba(200,168,75,.1);border-color:rgba(200,168,75,.35);color:rgba(200,168,75,.9)}
+.g:hover{background:rgba(200,168,75,.22)}
+#load{position:fixed;inset:0;background:#000;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .6s}
+.lt{font-size:2.2rem;font-weight:900;letter-spacing:8px;background:linear-gradient(135deg,#4dafff,#c8a84b);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.ls{font-size:.72rem;letter-spacing:3px;color:rgba(148,163,184,.4)}
+#err{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#ff4444;font-size:.9rem;letter-spacing:2px;display:none;z-index:110;text-align:center}
+</style>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.min.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="load"><div class="lt">3D DEMO</div><div class="ls" id="ls">라이브러리 로딩 중...</div></div>
+<div id="err"></div>
+<canvas id="c"></canvas>
+<div id="overlay">
+  <div id="champName"></div>
+  <div id="teamBadge"></div>
+</div>
+<div id="phase">PICK PHASE 1 — CHAMPION REVEAL</div>
+<div id="ui">
+  <button class="btn b" onclick="window.doReveal('blue')">🔵 BLUE 픽</button>
+  <button class="btn r" onclick="window.doReveal('red')">🔴 RED 픽</button>
+  <button class="btn g" onclick="window.nextChamp()">↺ 챔피언 변경</button>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass }     from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass }from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { ShaderPass }     from 'three/addons/postprocessing/ShaderPass.js';
+
+document.getElementById('ls').textContent = '초기화 중...';
+
+const CHAMPS = [
+  {key:'Jinx',    name:'진엑스'},
+  {key:'Ahri',    name:'아리'},
+  {key:'Yasuo',   name:'야스오'},
+  {key:'Lux',     name:'럭스'},
+  {key:'Zed',     name:'제드'},
+  {key:'KaiSa',   name:'카이사'},
+  {key:'Thresh',  name:'쓰레쉬'},
+  {key:'Ezreal',  name:'이즈리얼'},
+  {key:'Yone',    name:'요네'},
+  {key:'Caitlyn', name:'케이틀린'},
+  {key:'Jinx',    name:'진엑스'},
+];
+
+let champIdx = 0;
+let lastTeam = 'blue';
+let animating = false;
+let champLoaded = false;
+
+const loadingUrl = k => `https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${k}_0.jpg`;
+const splashUrl  = k => `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${k}_0.jpg`;
+const BLUE = 0x4dafff, RED = 0xff6655;
+
+// ─── renderer ───────────────────────────────────────────
+const W = innerWidth, H = innerHeight;
+const cv = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas:cv, antialias:true, alpha:false});
+renderer.setSize(W, H);
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+
+const scene  = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x000508, 0.028);
+const camera = new THREE.PerspectiveCamera(50, W/H, 0.1, 200);
+camera.position.set(0, 0, 9);
+
+// ─── post-processing ────────────────────────────────────
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+
+const bloom = new UnrealBloomPass(new THREE.Vector2(W, H), 1.4, 0.55, 0.15);
+composer.addPass(bloom);
+
+const chromaPass = new ShaderPass({
+  uniforms:{tDiffuse:{value:null}, amt:{value:0.004}},
+  vertexShader:`varying vec2 v;void main(){v=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+  fragmentShader:`uniform sampler2D tDiffuse;uniform float amt;varying vec2 v;void main(){vec2 d=(v-.5)*amt;gl_FragColor=vec4(texture2D(tDiffuse,v-d).r,texture2D(tDiffuse,v).g,texture2D(tDiffuse,v+d).b,1.);}`
+});
+composer.addPass(chromaPass);
+
+// ─── 배경 파티클 ─────────────────────────────────────────
+const N=3500, bp=new Float32Array(N*3), bc=new Float32Array(N*3);
+for(let i=0;i<N;i++){
+  bp[i*3]=(Math.random()-.5)*90; bp[i*3+1]=(Math.random()-.5)*55; bp[i*3+2]=(Math.random()-.5)*45-12;
+  const b=Math.random()>.5;
+  bc[i*3]=b?.05:.45; bc[i*3+1]=b?.22:.08; bc[i*3+2]=b?.72:.06;
+}
+const bGeo=new THREE.BufferGeometry();
+bGeo.setAttribute('position',new THREE.BufferAttribute(bp,3));
+bGeo.setAttribute('color',   new THREE.BufferAttribute(bc,3));
+const bgPts=new THREE.Points(bGeo,new THREE.PointsMaterial({size:.07,vertexColors:true,transparent:true,opacity:.55,depthWrite:false}));
+scene.add(bgPts);
+
+// ─── 그리드 ──────────────────────────────────────────────
+const gridH = new THREE.GridHelper(80,40,0x0a1428,0x050c16);
+gridH.position.y=-7.5; scene.add(gridH);
+
+// ─── 빛 기둥 ─────────────────────────────────────────────
+function beam(x, col, op){
+  const m=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:op,side:THREE.DoubleSide,depthWrite:false});
+  const b=new THREE.Mesh(new THREE.CylinderGeometry(.015,2.8,16,10,1,true),m);
+  b.position.set(x,3,-2); b.rotation.z=x===0?0:x>0?-.22:.22; scene.add(b); return b;
+}
+const bL=beam(-4,0x4d9fff,.06), bR=beam(4,0xff6655,.04), bC=beam(0,0xc8a84b,.04);
+
+// ─── 조명 ────────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0x223355,.45));
+const tLight=new THREE.PointLight(BLUE,0,28); tLight.position.set(-2.5,3,5); scene.add(tLight);
+const rim=new THREE.PointLight(0xff3300,2.2,20); rim.position.set(3,-2,-4); scene.add(rim);
+const top=new THREE.DirectionalLight(0xffffff,.55); top.position.set(0,7,4); scene.add(top);
+
+// ─── 챔피언 플레인 ───────────────────────────────────────
+const cGeo=new THREE.PlaneGeometry(4.2,7.47); // 9:16 ≈ 308:560
+const cMat=new THREE.MeshPhongMaterial({transparent:true,opacity:0,shininess:110});
+const cMesh=new THREE.Mesh(cGeo,cMat); scene.add(cMesh);
+
+// 뒤쪽 할로
+const hMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false,color:BLUE});
+const hMesh=new THREE.Mesh(new THREE.PlaneGeometry(6,10),hMat); hMesh.position.z=-.6; scene.add(hMesh);
+
+// 배경 스플래시 (깊이감용)
+const sMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});
+const sMesh=new THREE.Mesh(new THREE.PlaneGeometry(10,11),sMat); sMesh.position.z=-2.5; scene.add(sMesh);
+
+// ─── 오비탈 파티클 ───────────────────────────────────────
+const oN=80,oP=new Float32Array(oN*3);
+for(let i=0;i<oN;i++){
+  const a=(i/oN)*Math.PI*2, r=3.5+Math.random()*1.8;
+  oP[i*3]=Math.cos(a)*r; oP[i*3+1]=(Math.random()-.5)*7; oP[i*3+2]=Math.sin(a)*r*.22;
+}
+const oGeo=new THREE.BufferGeometry(); oGeo.setAttribute('position',new THREE.BufferAttribute(oP,3));
+const oPts=new THREE.Points(oGeo,new THREE.PointsMaterial({size:.14,color:BLUE,transparent:true,opacity:0,depthWrite:false}));
+scene.add(oPts);
+
+// ─── 챔피언 이름 텍스처 ──────────────────────────────────
+const tCv=document.createElement('canvas'); tCv.width=1024; tCv.height=180;
+const tCtx=tCv.getContext('2d');
+const tTex=new THREE.CanvasTexture(tCv);
+const tMesh=new THREE.Mesh(
+  new THREE.PlaneGeometry(5.2,.88),
+  new THREE.MeshBasicMaterial({map:tTex,transparent:true,opacity:0,depthWrite:false})
+);
+tMesh.position.y=-4.6; scene.add(tMesh);
+
+function drawName(name, hexColor){
+  tCtx.clearRect(0,0,1024,180);
+  const col='#'+hexColor.toString(16).padStart(6,'0');
+  tCtx.font='bold 90px Rajdhani, sans-serif';
+  tCtx.textAlign='center';
+  tCtx.shadowColor=col; tCtx.shadowBlur=40;
+  tCtx.fillStyle=col; tCtx.fillText(name.toUpperCase(),512,125);
+  tCtx.shadowBlur=0; tCtx.strokeStyle='rgba(255,255,255,.1)'; tCtx.lineWidth=1;
+  tCtx.strokeText(name.toUpperCase(),512,125);
+  tTex.needsUpdate=true;
+}
+
+// ─── 마우스 ──────────────────────────────────────────────
+let mx=0, my=0;
+addEventListener('mousemove',e=>{mx=(e.clientX/W-.5)*2; my=(e.clientY/H-.5)*2;});
+
+// ─── 텍스처 로더 ─────────────────────────────────────────
+const loader=new THREE.TextureLoader();
+function loadTex(url){ return new Promise(r=>loader.load(url,r,undefined,()=>r(null))); }
+
+// ─── 리빌 애니메이션 ─────────────────────────────────────
+function easeOut5(t){return 1-Math.pow(1-t,5);}
+
+async function doReveal(team){
+  if(animating) return;
+  animating=true; champLoaded=false;
+  lastTeam=team;
+
+  const c=CHAMPS[champIdx];
+  const col=team==='blue'?BLUE:RED;
+  const tc=new THREE.Color(col);
+  tLight.color.copy(tc); oPts.material.color.copy(tc); hMat.color.copy(tc); bC.material.color.setHex(col);
+
+  // DOM 숨기기
+  document.getElementById('champName').style.opacity='0';
+  document.getElementById('teamBadge').style.opacity='0';
+
+  drawName(c.name, col);
+
+  // 텍스처 로드
+  const [lt, st]=await Promise.all([loadTex(loadingUrl(c.key)), loadTex(splashUrl(c.key))]);
+  if(lt){cMat.map=lt; cMat.needsUpdate=true;}
+  if(st){sMat.map=st; sMat.needsUpdate=true;}
+
+  // 초기값 리셋
+  cMat.opacity=0; hMat.opacity=0; sMat.opacity=0;
+  tMesh.material.opacity=0; oPts.material.opacity=0; tLight.intensity=0;
+  cMesh.position.set(0,-2,0); cMesh.scale.setScalar(.75);
+  cMesh.rotation.set(.18, team==='blue'?-.32:.32, 0);
+  bloom.strength=3.0;
+
+  // 등장 tween
+  const t0=Date.now(), DUR=750;
+  await new Promise(res=>{
+    (function tk(){
+      const raw=Math.min((Date.now()-t0)/DUR,1), e=easeOut5(raw);
+      cMat.opacity=e; hMat.opacity=e*.22; sMat.opacity=e*.38;
+      tMesh.material.opacity=e; oPts.material.opacity=e*.78;
+      tLight.intensity=e*9;
+      cMesh.position.y=-2+e*2; cMesh.scale.setScalar(.75+e*.25);
+      cMesh.rotation.y=(team==='blue'?-.32:.32)*(1-e);
+      cMesh.rotation.x=.18*(1-e);
+      bloom.strength=3-e*1.8;
+      if(raw<1) requestAnimationFrame(tk); else res();
+    })();
+  });
+
+  // DOM 업데이트
+  const nameEl=document.getElementById('champName');
+  nameEl.textContent=c.name;
+  nameEl.style.color='#'+col.toString(16).padStart(6,'0');
+  nameEl.style.opacity='1';
+  const badge=document.getElementById('teamBadge');
+  badge.textContent=team==='blue'?'🔵  BLUE TEAM':'🔴  RED TEAM';
+  badge.style.color=team==='blue'?'#4dafff':'#ff6655';
+  badge.style.borderColor=team==='blue'?'rgba(77,159,255,.4)':'rgba(255,100,80,.4)';
+  badge.style.background=team==='blue'?'rgba(26,110,240,.12)':'rgba(220,60,40,.12)';
+  badge.style.opacity='1';
+
+  champLoaded=true; animating=false;
+}
+
+// ─── 렌더 루프 ───────────────────────────────────────────
+const clock=new THREE.Clock();
+(function loop(){
+  requestAnimationFrame(loop);
+  const t=clock.getElapsedTime();
+
+  bgPts.rotation.y=t*.006;
+  gridH.rotation.y=t*.004;
+  hMesh.rotation.z=t*.04;
+
+  if(champLoaded){
+    cMesh.position.y+=(Math.sin(t*.44)*.18-cMesh.position.y)*.034;
+    cMesh.rotation.y+=(Math.sin(t*.27)*.11+mx*.07-cMesh.rotation.y)*.038;
+    cMesh.rotation.x+=(Math.sin(t*.21)*.04-my*.038-cMesh.rotation.x)*.038;
+    sMesh.rotation.y=cMesh.rotation.y*.28;
+    sMesh.rotation.x=cMesh.rotation.x*.28;
+    oPts.rotation.y=t*.2;
+    oPts.rotation.x=Math.sin(t*.14)*.12;
+    tLight.position.x=Math.sin(t*.42)*2.8;
+    tLight.position.y=3+Math.sin(t*.32)*.9;
+    tLight.intensity=9+Math.sin(t*1.25)*1.3;
+    bL.material.opacity=.06+Math.sin(t*.6)*.02;
+    bR.material.opacity=.04+Math.sin(t*.7)*.015;
+    bC.material.opacity=.04+Math.sin(t*.8)*.012;
+  }
+
+  camera.position.x+=(mx*.45-camera.position.x)*.02;
+  camera.position.y+=(-my*.32-camera.position.y)*.02;
+  camera.lookAt(0,0,0);
+  composer.render();
+})();
+
+// ─── 전역 노출 ───────────────────────────────────────────
+window.doReveal = doReveal;
+window.nextChamp = ()=>{ champIdx=(champIdx+1)%CHAMPS.length; doReveal(lastTeam); };
+
+// 로딩 완료
+document.getElementById('load').style.opacity='0';
+setTimeout(()=>document.getElementById('load').style.display='none', 700);
+
+</script>
+</body>
+</html>
