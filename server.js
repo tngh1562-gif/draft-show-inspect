@@ -332,6 +332,48 @@ function chzzkHeaders(extra = {}) {
   return headers;
 }
 
+async function fetchChzzkJson(url, options={}, timeoutMs=5000){
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),timeoutMs);
+  try{
+    const res=await fetch(url,{...options,signal:controller.signal});
+    const json=await res.json().catch(()=>({}));
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    return json;
+  }finally{clearTimeout(timer);}
+}
+
+const chzzkProfileCache=new Map();
+async function fetchChzzkProfile(chzzkName){
+  if(!chzzkName)return null;
+  const key=String(chzzkName).trim().toLowerCase();
+  if(chzzkProfileCache.has(key))return chzzkProfileCache.get(key);
+  try{
+    const url=`https://api.chzzk.naver.com/service/v1/search/channels?keyword=${encodeURIComponent(chzzkName)}&size=5`;
+    const json=await fetchChzzkJson(url,{headers:chzzkHeaders()},4000);
+    const list=json?.content?.data||[];
+    const match=list.find(c=>String(c.channel?.channelName||'').toLowerCase()===key)||list[0];
+    const img=match?.channel?.channelImageUrl||null;
+    chzzkProfileCache.set(key,img);
+    return img;
+  }catch{return null;}
+}
+
+app.get('/api/draft-profiles', async(req,res)=>{
+  const db=readInhouseDB();
+  const fmt=async p=>({
+    name:p.chzzk||(p.name||'').replace(/#.*$/,''),
+    tier:p.tier||'',
+    position:p.assignedPos||'',
+    profileImage:await fetchChzzkProfile(p.chzzk),
+  });
+  const[blue,red]=await Promise.all([
+    Promise.all((db.curBlue||[]).map(fmt)),
+    Promise.all((db.curRed||[]).map(fmt)),
+  ]);
+  res.json({blue,red});
+});
+
 // ── 브로드캐스트 ──
 function broadcast(data) {
   const msg = JSON.stringify(data);
