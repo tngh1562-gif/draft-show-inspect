@@ -506,39 +506,43 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .vs-form{margin-top:6px}
 .fd{width:25px;height:20px;border-radius:4px}
 .vs-deco{
+  padding:4px 0;
   background:
-    linear-gradient(180deg,rgba(255,255,255,.08),transparent 18%,rgba(0,0,0,.2) 100%),
-    radial-gradient(ellipse 62% 46% at 50% 38%,rgba(var(--tc-rgb),.32),transparent 68%),
-    radial-gradient(ellipse 80% 60% at 50% 70%,rgba(245,217,126,.08),transparent 72%),
-    linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.018) 42%,rgba(0,0,0,.36)),
-    rgba(3,5,15,.88);
-  border-left:1px solid rgba(255,255,255,.07)}
+    radial-gradient(circle at 50% 48%, rgba(var(--tc-rgb),.38) 0%, rgba(var(--tc-rgb),.12) 38%, transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.06) 0%,transparent 20%,rgba(0,0,0,.28) 100%),
+    linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.01) 44%,rgba(0,0,0,.32)),
+    rgba(3,5,15,.9);
+  border-left:1px solid rgba(var(--tc-rgb),.18)}
 .red-team .vs-deco{border-left:0;border-right:1px solid rgba(255,255,255,.07)}
 .vs-deco-diamond-outer,.vs-deco-ring,.vs-deco-ring-outer{display:none}
-.tier-emblem{width:112px;height:112px}
+.tier-emblem{width:142px;height:142px}
+/* 내부 원 장식 (inset이므로 overflow 없음) */
 .tier-emblem::before{
-  content:'';position:absolute;inset:2px;z-index:-1;border-radius:50%;
+  content:'';position:absolute;inset:0;z-index:-1;border-radius:50%;
   background:
-    linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.02) 38%,rgba(0,0,0,.36)),
-    radial-gradient(circle,rgba(var(--tc-rgb),.24),rgba(0,0,0,.08) 62%,rgba(0,0,0,.45));
-  border:1px solid rgba(var(--tc-rgb),.42);
-  box-shadow:0 0 38px rgba(var(--tc-rgb),.18),inset 0 0 28px rgba(0,0,0,.34)}
-.tier-emblem::after{
-  content:'';position:absolute;inset:-18px;z-index:-2;pointer-events:none;border-radius:50%;
-  background:radial-gradient(circle,rgba(var(--tc-rgb),.34),transparent 58%);
-  filter:blur(12px);opacity:.86;animation:tierAura 5s ease-in-out infinite}
-@keyframes tierAura{50%{transform:scale(1.08);opacity:.62}}
-.vs-deco-pct{font-size:16px;letter-spacing:3px}
+    radial-gradient(circle at 48% 38%,rgba(255,255,255,.12),rgba(var(--tc-rgb),.18) 42%,rgba(0,0,0,.5));
+  border:1.5px solid rgba(var(--tc-rgb),.55);
+  box-shadow:0 0 24px rgba(var(--tc-rgb),.3),inset 0 0 22px rgba(0,0,0,.5)}
+.tier-emblem::after{display:none}
+/* 코너 브라켓 장식 — vs-deco 안에 완전히 포함 */
+.vs-deco-corner{position:absolute;width:16px;height:16px;z-index:2;opacity:.7}
+.vs-deco-corner::before,.vs-deco-corner::after{
+  content:'';position:absolute;background:rgba(var(--tc-rgb),.85)}
+.vs-deco-corner::before{width:100%;height:1.5px;top:0;left:0}
+.vs-deco-corner::after{width:1.5px;height:100%;top:0;left:0}
+.vs-deco-corner.tl{top:8px;left:8px}
+.vs-deco-corner.tr{top:8px;right:8px;transform:scaleX(-1)}
+.vs-deco-corner.bl{bottom:8px;left:8px;transform:scaleY(-1)}
+.vs-deco-corner.br{bottom:8px;right:8px;transform:rotate(180deg)}
 .vs-divider{
   padding:0;align-self:stretch;border-left:1px solid rgba(245,217,126,.12);
   border-right:1px solid rgba(245,217,126,.12)}
-.vs-divider::before{width:2px;background:linear-gradient(to bottom,transparent,rgba(245,217,126,.7) 48%,rgba(245,217,126,.7) 52%,transparent)}
-.lane-node{gap:8px}
-.lane-node-diamond{
-  width:46px;height:46px;display:grid;place-items:center;background:rgba(245,217,126,.08);
-  border:1px solid rgba(245,217,126,.42);box-shadow:0 0 24px rgba(245,217,126,.16)}
-.lane-node-diamond::before{
-  content:'';width:9px;height:9px;background:var(--gold);box-shadow:0 0 16px rgba(245,217,126,.9)}
+.vs-divider::before{display:none}
+.lane-node{gap:6px}
+.lane-node-icon{
+  width:42px;height:42px;object-fit:contain;display:block;
+  filter:brightness(0) saturate(100%) invert(78%) sepia(38%) saturate(580%) hue-rotate(5deg) brightness(0.92);
+  opacity:.85}
 .lane-node-label{font-size:15px;letter-spacing:3px}
 .lane-node-vs{font-size:12px;color:rgba(255,255,255,.38)}
 
@@ -1339,15 +1343,13 @@ function vsPlayerHTML(p){
       </div>
     </div>
     <div class="vs-deco">
-      <div class="vs-deco-diamond-outer"></div>
-      <div class="vs-deco-ring"></div>
-      <div class="vs-deco-ring-outer"></div>
+      <div class="vs-deco-corner tl"></div>
+      <div class="vs-deco-corner tr"></div>
+      <div class="vs-deco-corner bl"></div>
+      <div class="vs-deco-corner br"></div>
       ${p.tier?`<div class="tier-emblem" style="--tc-rgb:${rgb}">
         <img src="${tierEmblemUrl(p.tier)}" onerror="this.style.display='none'">
       </div>`:''}
-      ${total>0?`<div class="vs-deco-pct">${pct}%</div>`:''}
-      <div class="vs-deco-corner tl"></div>
-      <div class="vs-deco-corner br"></div>
     </div>
   </div>`;
 }
@@ -1389,11 +1391,19 @@ async function showMatchupResults(){
   rList.forEach(p=>redEl.insertAdjacentHTML('beforeend',vsPlayerHTML(p)));
 
   // 중앙 라인 노드
-  divEl.innerHTML=laneLabels.map(l=>`<div class="lane-node">
-    <div class="lane-node-diamond"></div>
-    <div class="lane-node-label">${l}</div>
-    <div class="lane-node-vs">VS</div>
-  </div>`).join('');
+  const POS_ICON_BASE='https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/';
+  const POS_ICON={
+    '탑':'position-top','정글':'position-jungle','미드':'position-middle',
+    '원딜':'position-bottom','서포터':'position-utility','서폿':'position-utility'
+  };
+  divEl.innerHTML=laneLabels.map(l=>{
+    const icon=POS_ICON[l];
+    return `<div class="lane-node">
+      ${icon?`<img class="lane-node-icon" src="${POS_ICON_BASE}${icon}.svg" onerror="this.style.display='none'">`:''}
+      <div class="lane-node-label">${l}</div>
+      <div class="lane-node-vs">VS</div>
+    </div>`;
+  }).join('');
 
   resultBg.querySelectorAll('.vs-player').forEach((el,i)=>{
     setTimeout(()=>el.classList.add('in'),150+i*100);

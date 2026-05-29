@@ -399,7 +399,7 @@ app.get('/api/draft-profiles', async(req,res)=>{
     return{
       name:p.chzzk||(p.name||'').replace(/#.*$/,''),
       tier:p.tier||'',
-      position:p.assignedPos||'',
+      position:(Array.isArray(p.positions)?p.positions.find(pos=>pos&&pos!=='무관'):null)||p.assignedPos||'',
       profileImage:await fetchChzzkProfile(p.chzzk),
       wins:stats.wins,
       losses:stats.losses,
