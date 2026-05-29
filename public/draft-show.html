@@ -208,11 +208,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   transform:scale(1.04);filter:blur(16px);overflow:hidden}
 .matchup-results.on{animation:resultsIn .9s cubic-bezier(.16,1,.3,1) forwards}
 @keyframes resultsIn{to{opacity:1;transform:scale(1);filter:blur(0)}}
-.vs-team{display:flex;flex-direction:column;padding:10px 20px;justify-content:center}
+.vs-team{display:flex;flex-direction:column;padding:6px 14px;justify-content:center}
 /* ── 선수 행 ── */
 .vs-player{
   flex:1;position:relative;display:flex;align-items:stretch;gap:0;
-  overflow:hidden;border-radius:12px;margin:4px 0;
+  overflow:hidden;border-radius:10px;margin:3px 0;
   opacity:0;transition:opacity .5s ease,transform .55s cubic-bezier(.16,1,.3,1)}
 .blue-team .vs-player{transform:translateX(-56px)}
 .red-team .vs-player{flex-direction:row-reverse;transform:translateX(56px)}
@@ -226,13 +226,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .vs-player.in .vs-player-bar{opacity:1}
 /* ── 정보 블록 ── */
 .vs-main{
-  display:flex;align-items:center;gap:18px;
-  padding:16px 22px;flex-shrink:0;width:52%;
+  display:flex;align-items:center;gap:16px;
+  padding:10px 18px;flex-shrink:0;width:52%;
   position:relative;z-index:1;overflow:hidden}
 .blue-team .vs-main{
   background:linear-gradient(105deg,rgba(8,22,62,.92),rgba(4,8,22,.9) 55%,rgba(3,5,15,.88))}
 .red-team .vs-main{
-  padding:16px 22px;flex-direction:row-reverse;
+  padding:10px 18px;flex-direction:row-reverse;
   background:linear-gradient(255deg,rgba(62,8,18,.92),rgba(22,4,8,.9) 55%,rgba(15,3,5,.88))}
 /* 격자 패턴 */
 .vs-main::before{
@@ -246,16 +246,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .blue-team .vs-main::after{background:linear-gradient(to right,rgba(88,180,255,.85),rgba(88,180,255,.1) 70%,transparent)}
 .red-team .vs-main::after{background:linear-gradient(to left,rgba(255,77,106,.85),rgba(255,77,106,.1) 70%,transparent)}
 /* ── 아바타 래퍼 ── */
-.vs-avatar-wrap{position:relative;flex-shrink:0;width:92px;height:92px}
+.vs-avatar-wrap{position:relative;flex-shrink:0;width:80px;height:80px}
+/* 세그먼트 링 (4분할 호, 갭 있음) */
 .vs-avatar-ring{
-  position:absolute;inset:-6px;border-radius:50%;
-  border:1px solid;opacity:0;transition:opacity .5s .6s}
-.blue-team .vs-avatar-ring{border-color:rgba(88,180,255,.3);box-shadow:0 0 18px rgba(88,180,255,.18)}
-.red-team .vs-avatar-ring{border-color:rgba(255,77,106,.3);box-shadow:0 0 18px rgba(255,77,106,.18)}
+  position:absolute;inset:-5px;border-radius:50%;
+  background:conic-gradient(
+    rgba(var(--tc-rgb),.85) 0deg 82deg, transparent 82deg 98deg,
+    rgba(var(--tc-rgb),.85) 98deg 180deg, transparent 180deg 196deg,
+    rgba(var(--tc-rgb),.85) 196deg 278deg, transparent 278deg 294deg,
+    rgba(var(--tc-rgb),.85) 294deg 360deg
+  );
+  -webkit-mask:radial-gradient(transparent calc(100% - 2px),black calc(100% - 2px));
+  mask:radial-gradient(transparent calc(100% - 2px),black calc(100% - 2px));
+  filter:drop-shadow(0 0 5px rgba(var(--tc-rgb),.8));
+  opacity:0;transition:opacity .5s .5s}
 .vs-player.in .vs-avatar-ring{opacity:1}
+/* 얇은 외곽 링 */
+.vs-avatar-wrap::before{
+  content:'';position:absolute;inset:-10px;border-radius:50%;
+  border:1px solid rgba(var(--tc-rgb),.18);pointer-events:none;
+  opacity:0;transition:opacity .5s .5s}
+.vs-player.in .vs-avatar-wrap::before{opacity:1}
 .vs-avatar{
-  width:92px;height:92px;border-radius:50%;overflow:hidden;
-  background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:30px}
+  width:80px;height:80px;border-radius:50%;overflow:hidden;
+  background:rgba(255,255,255,.07);display:grid;place-items:center;font-size:26px}
 .blue-team .vs-avatar{border:2px solid rgba(88,180,255,.88);
   box-shadow:0 0 28px rgba(88,180,255,.55),0 0 8px rgba(88,180,255,.8),inset 0 0 14px rgba(88,180,255,.1)}
 .red-team .vs-avatar{border:2px solid rgba(255,77,106,.88);
@@ -266,34 +280,41 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .blue-team .vs-info{text-align:left}
 .red-team .vs-info{text-align:right}
 .vs-name{
-  font-size:23px;font-weight:700;letter-spacing:.5px;line-height:1.15;
+  font-size:22px;font-weight:700;letter-spacing:.5px;line-height:1.1;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .blue-team .vs-name{
-  background:linear-gradient(135deg,#fff 20%,#9bd7ff);
+  background:linear-gradient(120deg,#fff 10%,#c8eaff 55%,#9bd7ff);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 10px rgba(88,180,255,.35))}
+  filter:drop-shadow(0 0 14px rgba(88,180,255,.5))}
 .red-team .vs-name{
-  background:linear-gradient(225deg,#fff 20%,#ff9aad);
+  background:linear-gradient(240deg,#fff 10%,#ffc8d5 55%,#ff9aad);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  filter:drop-shadow(0 0 10px rgba(255,77,106,.35))}
+  filter:drop-shadow(0 0 14px rgba(255,77,106,.5))}
 .vs-name-line{
-  height:1px;margin:6px 0 7px;width:55%;
-  opacity:.38;transition:width .7s ease .4s}
+  height:1px;margin:5px 0 6px;width:55%;
+  opacity:.4;transition:width .7s ease .4s}
 .blue-team .vs-name-line{background:linear-gradient(to right,rgba(88,180,255,.9),transparent)}
 .red-team .vs-name-line{background:linear-gradient(to left,rgba(255,77,106,.9),transparent);margin-left:auto}
 .vs-badges{display:flex;align-items:center;gap:7px}
 .red-team .vs-badges{flex-direction:row-reverse}
 .tier-tag{
-  font-size:11px;font-weight:700;letter-spacing:1.5px;padding:3px 10px;border-radius:5px;
-  background:rgba(var(--tc-rgb),.18);border:1px solid rgba(var(--tc-rgb),.55);
+  position:relative;overflow:hidden;
+  font-size:12px;font-weight:700;letter-spacing:2px;padding:4px 11px;border-radius:6px;
+  background:linear-gradient(135deg,rgba(var(--tc-rgb),.28),rgba(var(--tc-rgb),.12));
+  border:1px solid rgba(var(--tc-rgb),.65);
   color:rgb(var(--tc-rgb));text-transform:uppercase;
-  text-shadow:0 0 12px rgba(var(--tc-rgb),.7);
-  box-shadow:0 0 10px rgba(var(--tc-rgb),.15),inset 0 0 8px rgba(var(--tc-rgb),.07)}
+  text-shadow:0 0 14px rgba(var(--tc-rgb),.85);
+  box-shadow:0 0 14px rgba(var(--tc-rgb),.25),inset 0 1px 0 rgba(255,255,255,.12)}
+/* 티어 태그 상단 빛 반사 */
+.tier-tag::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:50%;
+  background:linear-gradient(to bottom,rgba(255,255,255,.1),transparent);pointer-events:none}
 .pos-tag{
-  font-size:10px;font-weight:700;letter-spacing:2px;color:#5a7090;text-transform:uppercase;
-  padding:3px 7px;border:1px solid rgba(255,255,255,.1);border-radius:4px;
-  background:rgba(255,255,255,.04)}
-.vs-record{display:flex;align-items:center;gap:8px;margin-top:8px}
+  font-size:10px;font-weight:700;letter-spacing:2px;color:#6a80a0;text-transform:uppercase;
+  padding:4px 9px;border:1px solid rgba(255,255,255,.12);border-radius:6px;
+  background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+.vs-record{display:flex;align-items:center;gap:7px;margin-top:6px}
 .red-team .vs-record{flex-direction:row-reverse}
 .record-text{font-size:11px;font-weight:700;color:#7a90ac;white-space:nowrap;letter-spacing:.5px}
 .winbar{
@@ -305,78 +326,91 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 .winpct{font-size:13px;font-weight:700;min-width:34px;letter-spacing:.5px}
 .blue-team .winpct{color:#9bd7ff;text-shadow:0 0 10px rgba(88,180,255,.5)}
 .red-team .winpct{color:#ff9aad;text-shadow:0 0 10px rgba(255,77,106,.5)}
-.vs-form{display:flex;gap:3px;margin-top:8px}
+.vs-form{display:flex;gap:4px;margin-top:6px;align-items:center}
 .red-team .vs-form{flex-direction:row-reverse}
-.fd{width:22px;height:22px;border-radius:5px;font-size:9px;font-weight:700;display:grid;place-items:center;letter-spacing:.3px}
-.fd.w{background:rgba(88,180,255,.18);color:#7ecfff;border:1px solid rgba(88,180,255,.4);box-shadow:0 0 6px rgba(88,180,255,.2)}
-.fd.l{background:rgba(255,77,106,.14);color:#ff7a93;border:1px solid rgba(255,77,106,.35);box-shadow:0 0 6px rgba(255,77,106,.15)}
+.fd{
+  width:24px;height:24px;border-radius:6px;font-size:9px;font-weight:700;
+  display:grid;place-items:center;letter-spacing:.5px;position:relative;overflow:hidden}
+/* 상단 반사광 */
+.fd::before{content:'';position:absolute;top:0;left:0;right:0;height:45%;
+  background:linear-gradient(to bottom,rgba(255,255,255,.18),transparent);pointer-events:none}
+.fd.w{
+  background:linear-gradient(135deg,rgba(88,180,255,.32),rgba(88,180,255,.14));
+  color:#9de0ff;border:1px solid rgba(88,180,255,.55);
+  box-shadow:0 0 8px rgba(88,180,255,.3),inset 0 0 6px rgba(88,180,255,.1);
+  text-shadow:0 0 8px rgba(88,180,255,.8)}
+.fd.l{
+  background:linear-gradient(135deg,rgba(255,77,106,.26),rgba(255,77,106,.1));
+  color:#ff9aad;border:1px solid rgba(255,77,106,.5);
+  box-shadow:0 0 8px rgba(255,77,106,.25),inset 0 0 6px rgba(255,77,106,.08);
+  text-shadow:0 0 8px rgba(255,77,106,.7)}
 /* ── 오른쪽 데코 블록 ── */
 .vs-deco{
   flex:1;position:relative;overflow:hidden;min-width:0;
-  display:flex;align-items:center;justify-content:center}
-/* 팀 컬러 배경 */
-.blue-team .vs-deco{background:linear-gradient(to right,rgba(5,12,36,.9),rgba(8,20,55,.85))}
-.red-team .vs-deco{background:linear-gradient(to left,rgba(36,5,10,.9),rgba(55,8,16,.85))}
-/* 장식 링 1 */
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  background:rgba(3,5,15,.88)}
+/* 미세 격자 */
 .vs-deco::before{
-  content:'';position:absolute;
-  width:220px;height:220px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.06)}
-/* 장식 링 2 */
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(var(--tc-rgb),.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--tc-rgb),.03) 1px,transparent 1px);
+  background-size:22px 22px}
+/* 중앙 라디얼 글로우 */
 .vs-deco::after{
   content:'';position:absolute;
-  width:310px;height:310px;border-radius:50%;
-  border:1px solid rgba(255,255,255,.035)}
-/* 티어 링 (팀 컬러) */
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--tc-rgb),.18) 0%,transparent 70%);
+  pointer-events:none}
+/* 다이아몬드 외곽 프레임 */
+.vs-deco-diamond-outer{
+  position:absolute;width:148px;height:148px;
+  transform:rotate(45deg);
+  border:1px solid rgba(var(--tc-rgb),.22);
+  opacity:0;transition:opacity .5s .35s}
+.vs-player.in .vs-deco-diamond-outer{opacity:1}
+/* 다이아몬드 내부 프레임 (펄스) */
 .vs-deco-ring{
-  position:absolute;width:160px;height:160px;border-radius:50%;
-  border:1px solid rgba(var(--tc-rgb),.2);
-  box-shadow:0 0 30px rgba(var(--tc-rgb),.08),inset 0 0 30px rgba(var(--tc-rgb),.05);
-  opacity:0;transition:opacity .6s ease .4s}
-.vs-player.in .vs-deco-ring{opacity:1}
-/* 대각선 라인 장식 */
-.vs-deco-lines{
-  position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.vs-deco-lines::before{
-  content:'';position:absolute;
-  top:-40px;bottom:-40px;
-  width:1px;transform:rotate(25deg);
-  background:linear-gradient(to bottom,transparent,rgba(255,255,255,.06),transparent)}
-.blue-team .vs-deco-lines::before{left:40%}
-.red-team .vs-deco-lines::before{right:40%}
-.vs-deco-lines::after{
-  content:'';position:absolute;
-  top:-40px;bottom:-40px;
-  width:1px;transform:rotate(25deg);
-  background:linear-gradient(to bottom,transparent,rgba(255,255,255,.04),transparent)}
-.blue-team .vs-deco-lines::after{left:65%}
-.red-team .vs-deco-lines::after{right:65%}
+  position:absolute;width:116px;height:116px;
+  transform:rotate(45deg);
+  border:1.5px solid rgba(var(--tc-rgb),.55);
+  box-shadow:0 0 20px rgba(var(--tc-rgb),.3),inset 0 0 20px rgba(var(--tc-rgb),.12);
+  opacity:0;transition:opacity .6s .5s}
+.vs-player.in .vs-deco-ring{opacity:1;animation:diamondPulse 3s ease-in-out infinite}
+@keyframes diamondPulse{
+  0%,100%{box-shadow:0 0 20px rgba(var(--tc-rgb),.3),inset 0 0 20px rgba(var(--tc-rgb),.12);border-color:rgba(var(--tc-rgb),.55)}
+  50%{box-shadow:0 0 34px rgba(var(--tc-rgb),.55),inset 0 0 28px rgba(var(--tc-rgb),.22);border-color:rgba(var(--tc-rgb),.85)}}
+/* 다이아몬드 4꼭짓점 도트 */
+.vs-deco-ring-outer{
+  position:absolute;width:116px;height:116px;transform:rotate(45deg);z-index:1}
+.vs-deco-ring-outer::before,.vs-deco-ring-outer::after{
+  content:'';position:absolute;width:7px;height:7px;border-radius:1px;
+  background:rgb(var(--tc-rgb));transform:rotate(0deg);
+  box-shadow:0 0 10px rgba(var(--tc-rgb),1),0 0 4px rgba(255,255,255,.6)}
+.vs-deco-ring-outer::before{top:-3.5px;left:50%;margin-left:-3.5px}
+.vs-deco-ring-outer::after{bottom:-3.5px;left:50%;margin-left:-3.5px}
 /* 티어 엠블럼 */
 .tier-emblem{
-  position:relative;z-index:2;
-  width:115px;height:115px;
-  display:grid;place-items:center;
-  opacity:0;transition:opacity .7s ease .5s}
+  position:relative;z-index:2;width:108px;height:108px;
+  display:grid;place-items:center;flex-shrink:0;
+  opacity:0;transition:opacity .7s ease .55s}
 .vs-player.in .tier-emblem{opacity:1}
 .tier-emblem img{width:100%;height:100%;object-fit:contain;
-  filter:drop-shadow(0 0 20px rgba(var(--tc-rgb),.65)) drop-shadow(0 0 6px rgba(var(--tc-rgb),.9))}
-/* 승률 수치 */
+  filter:drop-shadow(0 0 6px rgba(var(--tc-rgb),1)) drop-shadow(0 0 22px rgba(var(--tc-rgb),.85)) drop-shadow(0 0 48px rgba(var(--tc-rgb),.45))}
+/* 승률 */
 .vs-deco-pct{
-  position:absolute;z-index:2;
-  font-size:13px;font-weight:700;letter-spacing:2px;
-  opacity:0;transition:opacity .5s ease .7s}
-.blue-team .vs-deco-pct{bottom:16px;right:20px;color:rgba(88,180,255,.7);text-shadow:0 0 12px rgba(88,180,255,.5)}
-.red-team .vs-deco-pct{bottom:16px;left:20px;color:rgba(255,77,106,.7);text-shadow:0 0 12px rgba(255,77,106,.5)}
+  position:relative;z-index:2;
+  font-size:14px;font-weight:700;letter-spacing:3px;
+  color:rgb(var(--tc-rgb));
+  text-shadow:0 0 14px rgba(var(--tc-rgb),.8);
+  opacity:0;transition:opacity .5s ease .85s}
 .vs-player.in .vs-deco-pct{opacity:1}
-/* 코너 브라켓 장식 */
-.vs-deco-corner{position:absolute;width:18px;height:18px;opacity:.35}
-.vs-deco-corner::before,.vs-deco-corner::after{content:'';position:absolute;background:var(--gold)}
+/* 코너 브라켓 (티어 컬러) */
+.vs-deco-corner{position:absolute;width:14px;height:14px;z-index:2;opacity:.6}
+.vs-deco-corner::before,.vs-deco-corner::after{content:'';position:absolute;background:rgb(var(--tc-rgb))}
 .vs-deco-corner::before{width:100%;height:1.5px;top:0;left:0}
 .vs-deco-corner::after{width:1.5px;height:100%;top:0;left:0}
-.blue-team .vs-deco-corner.tl{top:10px;right:auto;left:10px}
-.blue-team .vs-deco-corner.br{bottom:10px;right:10px;transform:rotate(180deg)}
-.red-team .vs-deco-corner.tl{top:10px;left:10px}
-.red-team .vs-deco-corner.br{bottom:10px;right:10px;transform:rotate(180deg)}
+.vs-deco-corner.tl{top:8px;left:8px}
+.vs-deco-corner.br{bottom:8px;right:8px;transform:rotate(180deg)}
 /* 중앙 구분선 */
 .vs-divider{display:flex;flex-direction:column;align-items:center;padding:12px 0;position:relative}
 .vs-divider::before{
@@ -937,6 +971,7 @@ function facePos(name){return FACE_POS[name]||'50% 15%'}
 const splash=n=>`https://ddragon.leagueoflegends.com/cdn/img/champion/loading/${n}_0.jpg`;
 const qs=new URLSearchParams(location.search);
 const isLiveMode=qs.get('demo')!=='1';
+const isPreviewVs=qs.get('preview')==='vs';
 let championById=new Map(),championKeyById=new Map(),lastLiveDraft=null,liveInitialized=false,liveCompleteShown=false;
 let bgmUnlocked=false,bgmInChampSelect=false;
 const fallbackChampions={
@@ -1127,6 +1162,14 @@ function tierRgb(tier){
   if(!tier)return'90,112,144';
   return TIER_COLOR[String(tier).toUpperCase().slice(0,2)]||'90,112,144';
 }
+const TIER_ABBR={'DI':'D','GO':'G','SI':'S','BR':'B','PL':'P','EM':'E','MS':'M','CH':'C','IR':'I','GM':'GM'};
+function formatTier(tier){
+  if(!tier)return'';
+  const k=String(tier).toUpperCase().slice(0,2);
+  const pre=TIER_ABBR[k];
+  if(!pre)return tier;
+  return pre+String(tier).slice(2);
+}
 function tierEmblemUrl(tier){
   const k=String(tier||'').toUpperCase().slice(0,2);
   return `${EMBLEM_BASE}${TIER_EMBLEM[k]||'gold'}.png`;
@@ -1142,7 +1185,7 @@ function vsPlayerHTML(p){
   const rgb=tierRgb(p.tier);
   const wins=p.wins??0,losses=p.losses??0,total=wins+losses;
   const pct=total?Math.round(wins/total*100):0;
-  return `<div class="vs-player">
+  return `<div class="vs-player" style="--tc-rgb:${rgb}">
     <div class="vs-player-bar"></div>
     <div class="vs-main">
       <div class="vs-avatar-wrap">
@@ -1153,7 +1196,7 @@ function vsPlayerHTML(p){
         <div class="vs-name">${p.name||'?'}</div>
         <div class="vs-name-line"></div>
         <div class="vs-badges">
-          ${p.tier?`<span class="tier-tag" style="--tc-rgb:${rgb}">${p.tier}</span>`:''}
+          ${p.tier?`<span class="tier-tag" style="--tc-rgb:${rgb}">${formatTier(p.tier)}</span>`:''}
           ${p.position?`<span class="pos-tag">${p.position}</span>`:''}
         </div>
         ${total>0?`<div class="vs-record">
@@ -1164,9 +1207,10 @@ function vsPlayerHTML(p){
         ${p.form?`<div class="vs-form">${formDots(p.form)}</div>`:''}
       </div>
     </div>
-    <div class="vs-deco" style="--tc-rgb:${rgb}">
-      <div class="vs-deco-lines"></div>
+    <div class="vs-deco">
+      <div class="vs-deco-diamond-outer"></div>
       <div class="vs-deco-ring"></div>
+      <div class="vs-deco-ring-outer"></div>
       ${p.tier?`<div class="tier-emblem" style="--tc-rgb:${rgb}">
         <img src="${tierEmblemUrl(p.tier)}" onerror="this.style.display='none'">
       </div>`:''}
@@ -1472,7 +1516,11 @@ const sequence=[
 ];
 let seqIdx=-1;
 let resultHoldTicks=0;
-if(isLiveMode){
+if(isPreviewVs){
+  // VS 화면 즉시 미리보기
+  render();
+  setTimeout(showMatchupResults, 300);
+}else if(isLiveMode){
   blue=liveBlankTeam('blue');red=liveBlankTeam('red');
   blueBans=liveBlankBans();redBans=liveBlankBans();
   render();setPhase('ban','클라이언트 대기');setToast('롤 클라이언트와 챔피언 선택 화면을 기다리는 중입니다.');

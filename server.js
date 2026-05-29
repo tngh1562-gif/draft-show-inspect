@@ -359,19 +359,61 @@ async function fetchChzzkProfile(chzzkName){
   }catch{return null;}
 }
 
+const INHOUSE_API_URL=(process.env.INHOUSE_API_URL||'https://davido-inhouse-production.up.railway.app').replace(/\/+$/,'');
+
 app.get('/api/draft-profiles', async(req,res)=>{
-  const db=readInhouseDB();
-  const fmt=async p=>({
-    name:p.chzzk||(p.name||'').replace(/#.*$/,''),
-    tier:p.tier||'',
-    position:p.assignedPos||'',
-    profileImage:await fetchChzzkProfile(p.chzzk),
-  });
+  // Railway 내전 서버에서 최신 팀 데이터 가져오기
+  let db=null;
+  try{
+    const r=await fetch(`${INHOUSE_API_URL}/api/inhouse-db`,{signal:AbortSignal.timeout(5000)});
+    if(r.ok)db=await r.json();
+  }catch(e){console.log('[draft-profiles] Railway fetch 실패, 로컬 fallback:',e.message);}
+  // 로컬 파일 fallback
+  if(!db){
+    const davidoDb=path.join(__dirname,'..','davido-inhouse','data','inhouse-db.json');
+    if(fs.existsSync(davidoDb)){
+      try{db=JSON.parse(fs.readFileSync(davidoDb,'utf8').replace(/^﻿/,''));}catch{}
+    }
+  }
+  if(!db)db=readInhouseDB();
+
+  // 플레이어별 승패 계산
+  const history=Array.isArray(db.history)?db.history:[];
+  function playerStats(viewerId){
+    let wins=0,losses=0;const form=[];
+    for(let i=history.length-1;i>=0;i--){
+      const h=history[i];
+      if(!h.res)continue;
+      const inBlue=(h.blue||[]).some(p=>p.viewerId===viewerId);
+      const inRed=(h.red||[]).some(p=>p.viewerId===viewerId);
+      if(!inBlue&&!inRed)continue;
+      const won=(inBlue&&h.res==='blue')||(inRed&&h.res==='red');
+      if(won){wins++;}else{losses++;}
+      if(form.length<5)form.unshift(won?'W':'L');
+    }
+    return{wins,losses,form:form.join('')};
+  }
+
+  const fmt=async p=>{
+    const stats=playerStats(p.viewerId);
+    return{
+      name:p.chzzk||(p.name||'').replace(/#.*$/,''),
+      tier:p.tier||'',
+      position:p.assignedPos||'',
+      profileImage:await fetchChzzkProfile(p.chzzk),
+      wins:stats.wins,
+      losses:stats.losses,
+      form:stats.form,
+    };
+  };
+  const POS_ORDER={탑:0,정글:1,미드:2,원딜:3,서포터:4,서폿:4};
+  const sortPos=arr=>[...arr].sort((a,b)=>(POS_ORDER[a.position]??9)-(POS_ORDER[b.position]??9));
+
   const[blue,red]=await Promise.all([
     Promise.all((db.curBlue||[]).map(fmt)),
     Promise.all((db.curRed||[]).map(fmt)),
   ]);
-  res.json({blue,red});
+  res.json({blue:sortPos(blue),red:sortPos(red)});
 });
 
 // ── 브로드캐스트 ──
