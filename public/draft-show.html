@@ -424,6 +424,137 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   text-shadow:0 0 14px rgba(245,217,126,.55)}
 .lane-node-vs{font-size:10px;font-weight:700;color:rgba(255,255,255,.2);letter-spacing:2px}
 
+/* POST DRAFT PREMIUM BOARD */
+.matchup-results{
+  grid-template-columns:minmax(620px,1fr) 96px minmax(620px,1fr);
+  gap:22px;padding:104px 64px 46px;
+  background:
+    linear-gradient(90deg,rgba(88,180,255,.2),transparent 18%,transparent 82%,rgba(255,77,106,.2)),
+    radial-gradient(ellipse 48% 95% at 0% 50%,rgba(40,118,255,.58),transparent 62%),
+    radial-gradient(ellipse 48% 95% at 100% 50%,rgba(255,45,82,.5),transparent 62%),
+    radial-gradient(circle at 50% 8%,rgba(245,217,126,.16),transparent 34%),
+    linear-gradient(180deg,#03050f 0%,#050916 46%,#02030a 100%);
+  isolation:isolate}
+.matchup-results::before{
+  content:'POST DRAFT LINEUP';position:absolute;top:28px;left:50%;z-index:2;
+  transform:translateX(-50%);font-size:42px;font-weight:700;letter-spacing:8px;white-space:nowrap;
+  background:linear-gradient(100deg,#fff 8%,var(--gold) 50%,#dcecff 92%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 24px rgba(245,217,126,.28))}
+.matchup-results::after{
+  content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    linear-gradient(90deg,transparent 0 3%,rgba(88,180,255,.24) 3.1%,transparent 3.4% 96.6%,rgba(255,77,106,.22) 96.9%,transparent 97.2%),
+    linear-gradient(rgba(255,255,255,.032) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.026) 1px,transparent 1px);
+  background-size:100% 100%,54px 54px,54px 54px;
+  mask-image:radial-gradient(ellipse 82% 72% at 50% 52%,black 0 58%,transparent 100%)}
+.vs-team{position:relative;gap:10px;padding:0;min-width:0}
+.vs-team::before{
+  position:absolute;top:-50px;font-size:14px;font-weight:700;letter-spacing:5px;
+  color:rgba(255,255,255,.82);text-shadow:0 0 18px currentColor}
+.blue-team::before{content:'BLUE TEAM';left:8px;color:#a9ddff}
+.red-team::before{content:'RED TEAM';right:8px;color:#ffbdc9}
+.vs-player{
+  flex:1 1 0;min-height:0;margin:0;border-radius:8px;
+  background:linear-gradient(135deg,rgba(255,255,255,.08),rgba(255,255,255,.025));
+  border:1px solid rgba(255,255,255,.11);
+  box-shadow:0 20px 46px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.08);
+  backdrop-filter:blur(18px)}
+.blue-team .vs-player{transform:translateX(-72px) scale(.98)}
+.red-team .vs-player{transform:translateX(72px) scale(.98)}
+.vs-player.in{transform:translateX(0) scale(1)}
+.vs-player::before{
+  content:'';position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.85;
+  background:
+    linear-gradient(90deg,rgba(var(--tc-rgb),.18),transparent 42%,rgba(255,255,255,.035) 50%,transparent 72%),
+    radial-gradient(circle at 18% 50%,rgba(var(--tc-rgb),.2),transparent 34%)}
+.red-team .vs-player::before{
+  background:
+    linear-gradient(270deg,rgba(var(--tc-rgb),.18),transparent 42%,rgba(255,255,255,.035) 50%,transparent 72%),
+    radial-gradient(circle at 82% 50%,rgba(var(--tc-rgb),.2),transparent 34%)}
+.vs-player-bar{width:5px;border-radius:999px;margin:12px 0;top:0;bottom:0}
+.vs-main{width:58%;min-width:0;padding:10px 18px;gap:16px;background:rgba(3,7,18,.58)}
+.red-team .vs-main{padding:10px 18px;background:rgba(18,3,8,.58)}
+.vs-main::before{background-size:34px 34px;opacity:.75}
+.vs-avatar-wrap{width:84px;height:84px}
+.vs-avatar{width:84px;height:84px;border-radius:18px;font-size:28px}
+.vs-avatar-ring,.vs-avatar-wrap::before{border-radius:24px}
+.vs-name{max-width:100%;font-size:26px;letter-spacing:1px}
+.vs-name-line{height:2px;margin:5px 0 6px}
+.tier-tag{
+  border-radius:5px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.22),transparent 42%),
+    linear-gradient(135deg,rgba(var(--tc-rgb),.46),rgba(var(--tc-rgb),.16) 48%,rgba(0,0,0,.32));
+  border:1px solid rgba(var(--tc-rgb),.78);
+  color:#f4fbff;
+  box-shadow:
+    0 0 18px rgba(var(--tc-rgb),.32),
+    inset 0 1px 0 rgba(255,255,255,.24),
+    inset 0 -10px 18px rgba(0,0,0,.2)}
+.tier-tag::after{
+  content:'';position:absolute;inset:1px;border-radius:4px;pointer-events:none;
+  border:1px solid rgba(255,255,255,.08)}
+.pos-tag{
+  border-radius:5px;
+  background:linear-gradient(135deg,rgba(255,255,255,.1),rgba(255,255,255,.025));
+  border-color:rgba(255,255,255,.18);
+  color:#a8b8d0}
+.vs-record{margin-top:6px}
+.winbar{height:6px;max-width:126px}
+.vs-form{margin-top:6px}
+.fd{width:25px;height:20px;border-radius:4px}
+.vs-deco{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.08),transparent 18%,rgba(0,0,0,.2) 100%),
+    radial-gradient(ellipse 62% 46% at 50% 38%,rgba(var(--tc-rgb),.32),transparent 68%),
+    radial-gradient(ellipse 80% 60% at 50% 70%,rgba(245,217,126,.08),transparent 72%),
+    linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.018) 42%,rgba(0,0,0,.36)),
+    rgba(3,5,15,.88);
+  border-left:1px solid rgba(255,255,255,.07)}
+.red-team .vs-deco{border-left:0;border-right:1px solid rgba(255,255,255,.07)}
+.vs-deco-diamond-outer,.vs-deco-ring,.vs-deco-ring-outer{display:none}
+.tier-emblem{width:112px;height:112px}
+.tier-emblem::before{
+  content:'';position:absolute;inset:2px;z-index:-1;border-radius:50%;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.18),rgba(255,255,255,.02) 38%,rgba(0,0,0,.36)),
+    radial-gradient(circle,rgba(var(--tc-rgb),.24),rgba(0,0,0,.08) 62%,rgba(0,0,0,.45));
+  border:1px solid rgba(var(--tc-rgb),.42);
+  box-shadow:0 0 38px rgba(var(--tc-rgb),.18),inset 0 0 28px rgba(0,0,0,.34)}
+.tier-emblem::after{
+  content:'';position:absolute;inset:-18px;z-index:-2;pointer-events:none;border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--tc-rgb),.34),transparent 58%);
+  filter:blur(12px);opacity:.86;animation:tierAura 5s ease-in-out infinite}
+@keyframes tierAura{50%{transform:scale(1.08);opacity:.62}}
+.vs-deco-pct{font-size:16px;letter-spacing:3px}
+.vs-divider{
+  padding:0;align-self:stretch;border-left:1px solid rgba(245,217,126,.12);
+  border-right:1px solid rgba(245,217,126,.12)}
+.vs-divider::before{width:2px;background:linear-gradient(to bottom,transparent,rgba(245,217,126,.7) 48%,rgba(245,217,126,.7) 52%,transparent)}
+.lane-node{gap:8px}
+.lane-node-diamond{
+  width:46px;height:46px;display:grid;place-items:center;background:rgba(245,217,126,.08);
+  border:1px solid rgba(245,217,126,.42);box-shadow:0 0 24px rgba(245,217,126,.16)}
+.lane-node-diamond::before{
+  content:'';width:9px;height:9px;background:var(--gold);box-shadow:0 0 16px rgba(245,217,126,.9)}
+.lane-node-label{font-size:15px;letter-spacing:3px}
+.lane-node-vs{font-size:12px;color:rgba(255,255,255,.38)}
+
+@media (max-width:900px){
+  .matchup-results{
+    grid-template-columns:minmax(620px,1fr) 72px minmax(620px,1fr);
+    gap:16px;padding:92px 20px 32px;overflow:auto;justify-content:start}
+  .matchup-results::before{font-size:30px;letter-spacing:5px;top:24px}
+  .vs-team::before{top:-38px}
+  .vs-player{min-height:132px}
+  .vs-main{width:54%;padding:9px 16px;gap:14px}
+  .vs-avatar-wrap,.vs-avatar{width:76px;height:76px}
+  .vs-name{font-size:24px}
+  .tier-emblem{width:96px;height:96px}
+}
+
 /* ====================================================
    CINEMA — 전체 재설계
    Total duration: 4.8s
