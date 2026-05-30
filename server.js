@@ -395,28 +395,28 @@ app.get('/api/draft-profiles', async(req,res)=>{
   }
 
   const POS_SLOTS=['탑','정글','미드','원딜','서폿'];
-  const fmt=async p=>{
+  const fmt=async (p,i)=>{
     const stats=playerStats(p.viewerId);
-    // posSlot(실제 배정 라인) 우선, 없으면 DB 선호 포지션 첫 번째
-    const posFromSlot=Number.isInteger(p.posSlot)?POS_SLOTS[p.posSlot]:null;
+    // posSlot 우선, 없으면 배열 인덱스(curBlue[0]=탑,1=정글,...) 사용
+    const pos=Number.isInteger(p.posSlot)?POS_SLOTS[p.posSlot]:POS_SLOTS[i]||'';
+    const viewer=(db.viewers||[]).find(v=>Number(v.id)===Number(p.viewerId||p.id));
     return{
-      name:p.chzzk||(p.name||'').replace(/#.*$/,''),
-      tier:p.tier||'',
-      position:posFromSlot||(Array.isArray(p.positions)?p.positions.find(pos=>pos&&pos!=='무관'):null)||p.assignedPos||'',
-      profileImage:await fetchChzzkProfile(p.chzzk),
+      name:p.chzzk||viewer?.chzzk||(p.name||'').replace(/#.*$/,''),
+      tier:viewer?.tier||p.tier||'',
+      position:pos,
+      profileImage:await fetchChzzkProfile(p.chzzk||viewer?.chzzk),
       wins:stats.wins,
       losses:stats.losses,
       form:stats.form,
     };
   };
-  const POS_ORDER={탑:0,정글:1,미드:2,원딜:3,서포터:4,서폿:4};
-  const sortPos=arr=>[...arr].sort((a,b)=>(POS_ORDER[a.position]??9)-(POS_ORDER[b.position]??9));
+  // 이미 posSlot/인덱스 기준 정렬됐으므로 추가 정렬 불필요 — 원본 순서 유지
 
   const[blue,red]=await Promise.all([
-    Promise.all((db.curBlue||[]).map(fmt)),
-    Promise.all((db.curRed||[]).map(fmt)),
+    Promise.all((db.curBlue||[]).map((p,i)=>fmt(p,i))),
+    Promise.all((db.curRed||[]).map((p,i)=>fmt(p,i))),
   ]);
-  res.json({blue:sortPos(blue),red:sortPos(red)});
+  res.json({blue,red});
 });
 
 // ── 브로드캐스트 ──
