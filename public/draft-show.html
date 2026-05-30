@@ -839,6 +839,35 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
 /* 파티클 캔버스 (cinema용) */
 #burstCanvas{position:fixed;inset:0;z-index:19;pointer-events:none;opacity:0}
 #burstCanvas.on{opacity:1}
+
+/* ── 라인별 순차 등장 ── */
+.vs-player{opacity:0}
+.lane-node{opacity:0;transition:opacity .5s ease}
+.lane-node.in{opacity:1}
+
+/* LANE ANNOUNCE */
+#laneAnnounce{position:fixed;inset:0;z-index:32;pointer-events:none;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;opacity:0;
+  background:radial-gradient(ellipse 55% 38% at 50% 50%,rgba(245,217,126,.07),transparent 70%)}
+.la-eyebrow{font-size:10px;font-weight:700;letter-spacing:8px;color:rgba(245,217,126,.65);margin-bottom:2px}
+.la-lane{font-size:92px;font-weight:700;letter-spacing:18px;
+  background:linear-gradient(135deg,#fff 15%,var(--gold) 48%,#fff 82%);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  filter:drop-shadow(0 0 55px rgba(245,217,126,.65))}
+.la-rule{width:340px;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);opacity:.55;margin:2px 0}
+.la-vs-row{display:flex;align-items:center;gap:22px}
+.la-champ-b{font-size:26px;font-weight:700;color:#a8d4ff;letter-spacing:1px;text-shadow:0 0 26px rgba(88,180,255,.9)}
+.la-champ-r{font-size:26px;font-weight:700;color:#ffa8b4;letter-spacing:1px;text-shadow:0 0 26px rgba(255,77,106,.9)}
+.la-sep{font-size:15px;font-weight:700;color:rgba(245,217,126,.65)}
+#laneAnnounce.on{animation:laIn 2.5s ease forwards}
+@keyframes laIn{
+  0%{opacity:0;filter:blur(28px);transform:scale(1.2)}
+  10%{opacity:1;filter:blur(0);transform:scale(1.04)}
+  18%{transform:scale(1)}
+  66%{opacity:1;transform:scale(1);filter:blur(0)}
+  85%{opacity:.4}
+  100%{opacity:0;filter:blur(8px);transform:scale(.96)}
+}
 </style>
 </head>
 <body>
@@ -938,6 +967,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);
   <div class="vs-divider" id="vsDivider"></div>
   <div class="vs-team red-team" id="vsRed"></div>
 </section>
+
+<div id="laneAnnounce">
+  <div class="la-eyebrow">LANE MATCHUP</div>
+  <div class="la-lane" id="laLane">TOP</div>
+  <div class="la-rule"></div>
+  <div class="la-vs-row">
+    <span class="la-champ-b" id="laBlue"></span>
+    <span class="la-sep">VS</span>
+    <span class="la-champ-r" id="laRed"></span>
+  </div>
+</div>
 
 <!-- 아레나 -->
 <main class="arena">
@@ -1405,9 +1445,44 @@ async function showMatchupResults(){
     </div>`;
   }).join('');
 
-  resultBg.querySelectorAll('.vs-player').forEach((el,i)=>{
-    setTimeout(()=>el.classList.add('in'),150+i*100);
-  });
+  // 라인별 순차 등장 (3초 간격)
+  const LANE_EN={탑:'TOP',정글:'JGL',미드:'MID',원딜:'BOT',서폿:'SUP'};
+  const bluePlayers=[...blueEl.querySelectorAll('.vs-player')];
+  const redPlayers=[...redEl.querySelectorAll('.vs-player')];
+  const laneNodes=[...divEl.querySelectorAll('.lane-node')];
+  let rowRevealTimer=null;
+
+  function flashLaneRow(idx){
+    if(idx>=bList.length)return;
+    const bl=bList[idx],rl=rList[idx];
+    $('laLane').textContent=LANE_EN[laneLabels[idx]]||laneLabels[idx].toUpperCase();
+    $('laBlue').textContent=bl.name;
+    $('laRed').textContent=rl.name;
+    const el=$('laneAnnounce');
+    el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+  }
+
+  function revealRow(idx){
+    if(bluePlayers[idx])bluePlayers[idx].classList.add('in');
+    if(redPlayers[idx])redPlayers[idx].classList.add('in');
+    if(laneNodes[idx])laneNodes[idx].classList.add('in');
+    const rect=bluePlayers[idx]?.getBoundingClientRect();
+    const cy=rect?(rect.top+rect.height/2):innerHeight/2;
+    spawnBurst(innerWidth/2-220,cy,'rgba(88,180,255,A)',20);
+    spawnBurst(innerWidth/2+220,cy,'rgba(255,77,106,A)',20);
+    spawnBurst(innerWidth/2,cy,'rgba(245,217,126,A)',12);
+    animateBurst();
+  }
+
+  let curRow=0;
+  (function step(){
+    if(curRow>=bList.length)return;
+    flashLaneRow(curRow);
+    const i=curRow;
+    setTimeout(()=>revealRow(i),700);
+    curRow++;
+    if(curRow<bList.length)rowRevealTimer=setTimeout(step,3000);
+  })();
 }
 function scatterDraftCards(){
   const cards=[...document.querySelectorAll('.champ-card,.ban-slot')];
@@ -1547,12 +1622,25 @@ async function loadChampionMap(){
 }
 
 /* ── 라이브 드래프트 ── */
+let inhouseTeams={blue:[],red:[]};
+function ihName(side,slotIdx){
+  const team=side==='blue'?inhouseTeams.blue:inhouseTeams.red;
+  if(!team?.length)return null;
+  const p=team.find(t=>Number.isInteger(t?.posSlot)&&t.posSlot===slotIdx)||team[slotIdx];
+  if(!p)return null;
+  return dname(p.name||'');
+}
+
 function connectDraftLive(){
   const proto=location.protocol==='https:'?'wss:':'ws:';
   const ws=new WebSocket(`${proto}//${location.host}`);
   ws.onmessage=ev=>{try{const m=JSON.parse(ev.data);
     if(m.type==='lcu_champ_select')applyLiveDraft(m.data,true);
-    if(m.type==='state'&&m.data?.lcuDraft)applyLiveDraft(m.data.lcuDraft,true);
+    if(m.type==='state'){
+      if(m.data?.inhouseTeams)inhouseTeams=m.data.inhouseTeams;
+      if(m.data?.lcuDraft)applyLiveDraft(m.data.lcuDraft,true);
+    }
+    if(m.type==='inhouse_teams_update'&&m.inhouseTeams)inhouseTeams=m.inhouseTeams;
   }catch(e){}};
   ws.onclose=()=>setTimeout(connectDraftLive,1500);
 }
@@ -1563,6 +1651,13 @@ function liveTeamByLane(players,side,actions=[]){
   const pickByCell=new Map((actions||[])
     .filter(a=>a.type==='pick'&&a.side===side&&a.championId)
     .map(a=>[Number(a.actorCellId),Number(a.championId)]));
+
+  // inhouseTeams로 슬롯→이름 매핑 (posSlot 기준)
+  const ihTeam=side==='blue'?inhouseTeams.blue:inhouseTeams.red;
+  const ihBySlot={};
+  (ihTeam||[]).forEach(p=>{if(Number.isInteger(p?.posSlot))ihBySlot[p.posSlot]=p;});
+
+  // LCU 플레이어를 레인 순서로 배치
   (players||[]).forEach((p,fallbackIdx)=>{
     const key=laneKey(p.lane);
     const laneIdx=LANE_ORDER.indexOf(key);
@@ -1571,8 +1666,24 @@ function liveTeamByLane(players,side,actions=[]){
     used.add(idx);
     const champId=pickByCell.get(Number(p.cellId))||Number(p.championId||0);
     const m=champMeta(champId);
-    rows[idx]=[laneLabel(key,idx),p.name||`${side==='blue'?'블루':'레드'} ${idx+1}`,m[0],m[1],key||LANE_ORDER[idx]];
+    // 이름: inhouseTeams 우선, 없으면 LCU 이름
+    const name=ihName(side,idx)||dname(p.name)||`${side==='blue'?'블루':'레드'} ${idx+1}`;
+    rows[idx]=[laneLabel(key,idx),name,m[0],m[1],key||LANE_ORDER[idx]];
   });
+
+  // LCU에 없는 슬롯은 inhouseTeams 이름으로 채움 (레드팀 보완)
+  for(let i=0;i<5;i++){
+    if(used.has(i))continue;
+    const name=ihName(side,i);
+    if(name)rows[i][1]=name;
+    // posSlot 기준 챔피언 정보가 있으면 반영
+    const ihP=ihBySlot[i];
+    if(ihP){
+      // LCU actions에서 이 슬롯 챔피언 찾기 (이름 매칭)
+      const key=LANE_ORDER[i]||'';
+      rows[i][0]=laneLabel(key,i);
+    }
+  }
   return rows;
 }
 function applyLiveDraft(draft,animate){
@@ -1680,6 +1791,21 @@ if(isPreviewVs){
       if(type==='complete'){showComplete();resultHoldTicks=8}
     },5200);
   },1000);
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='m'||e.key==='M'){
+      seqIdx=sequence.length-1;
+      resultHoldTicks=0;
+      bluePickOrder=[0,1,2,3,4];redPickOrder=[0,1,2,3,4];
+      document.querySelectorAll('.champ-card').forEach(el=>el.classList.add('revealed'));
+      document.querySelectorAll('.ban-slot').forEach(el=>el.classList.add('revealed'));
+      $('cinema').className='cinema';
+      $('complete').classList.remove('on');
+      resetDraftDemo();
+      showComplete();
+      resultHoldTicks=8;
+    }
+  });
 }
 </script>
 </body>
