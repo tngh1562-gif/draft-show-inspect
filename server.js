@@ -394,12 +394,15 @@ app.get('/api/draft-profiles', async(req,res)=>{
     return{wins,losses,form:form.join('')};
   }
 
+  const POS_SLOTS=['탑','정글','미드','원딜','서폿'];
   const fmt=async p=>{
     const stats=playerStats(p.viewerId);
+    // posSlot(실제 배정 라인) 우선, 없으면 DB 선호 포지션 첫 번째
+    const posFromSlot=Number.isInteger(p.posSlot)?POS_SLOTS[p.posSlot]:null;
     return{
       name:p.chzzk||(p.name||'').replace(/#.*$/,''),
       tier:p.tier||'',
-      position:(Array.isArray(p.positions)?p.positions.find(pos=>pos&&pos!=='무관'):null)||p.assignedPos||'',
+      position:posFromSlot||(Array.isArray(p.positions)?p.positions.find(pos=>pos&&pos!=='무관'):null)||p.assignedPos||'',
       profileImage:await fetchChzzkProfile(p.chzzk),
       wins:stats.wins,
       losses:stats.losses,
