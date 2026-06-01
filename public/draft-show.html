@@ -1677,16 +1677,9 @@ function liveTeamByLane(side, allPlayers, completedActions){
     if(!name&&lcu)name=dname(lcu.name);
     if(!name)name=`${side==='blue'?'블루':'레드'} ${slotIdx+1}`;
 
-    rows[slotIdx]=[laneLabel(lane,slotIdx),name,champKey,champKr,lane||LANE_ORDER[slotIdx]];
+    // 밴픽 화면 중에는 닉네임 비공개
+    rows[slotIdx]=[laneLabel(lane,slotIdx),'',champKey,champKr,lane||LANE_ORDER[slotIdx]];
   });
-
-  // 미픽 슬롯에 inhouse 이름 미리 채우기
-  if(ihTeam?.length){
-    for(let i=picks.length;i<5;i++){
-      const ihP=ihTeam.find(p=>p?.posSlot===i)||ihTeam[i];
-      if(ihP)rows[i][1]=dname(ihP.name);
-    }
-  }
   return rows;
 }
 function applyLiveDraft(draft,animate){
