@@ -1646,42 +1646,45 @@ function connectDraftLive(){
 }
 function liveBlankTeam(s){return Array.from({length:5},(_,i)=>[laneLabel('',i),`${s==='blue'?'참가자':'레드'} ${i+1}`,'','대기 중'])}
 function liveBlankBans(){return Array.from({length:5},()=>['','대기 중'])}
-function liveTeamByLane(players,side,actions=[]){
-  const rows=liveBlankTeam(side),used=new Set();
-  const pickByCell=new Map((actions||[])
-    .filter(a=>a.type==='pick'&&a.side===side&&a.championId)
-    .map(a=>[Number(a.actorCellId),Number(a.championId)]));
-
-  // inhouseTeams로 슬롯→이름 매핑 (posSlot 기준)
+// 픽 순서(시간순)로 카드 배치 — 왼쪽=1번픽, 오른쪽=5번픽
+function liveTeamByLane(side, allPlayers, completedActions){
+  const rows=liveBlankTeam(side);
   const ihTeam=side==='blue'?inhouseTeams.blue:inhouseTeams.red;
-  const ihBySlot={};
-  (ihTeam||[]).forEach(p=>{if(Number.isInteger(p?.posSlot))ihBySlot[p.posSlot]=p;});
 
-  // LCU 플레이어를 레인 순서로 배치
-  (players||[]).forEach((p,fallbackIdx)=>{
-    const key=laneKey(p.lane);
-    const laneIdx=LANE_ORDER.indexOf(key);
-    const idx=laneIdx>=0&&!used.has(laneIdx)?laneIdx:fallbackIdx;
-    if(idx<0||idx>=5)return;
-    used.add(idx);
-    const champId=pickByCell.get(Number(p.cellId))||Number(p.championId||0);
-    const m=champMeta(champId);
-    // 이름: inhouseTeams 우선, 없으면 LCU 이름
-    const name=ihName(side,idx)||dname(p.name)||`${side==='blue'?'블루':'레드'} ${idx+1}`;
-    rows[idx]=[laneLabel(key,idx),name,m[0],m[1],key||LANE_ORDER[idx]];
+  // 픽 완료 액션을 id 순(시간순)으로 정렬
+  const picks=(completedActions||[])
+    .filter(a=>a.type==='pick'&&a.side===side&&a.championId&&a.completed)
+    .sort((a,b)=>a.id-b.id);
+
+  const playerByCellId=new Map((allPlayers||[]).map(p=>[Number(p.cellId),p]));
+
+  picks.forEach((action,slotIdx)=>{
+    if(slotIdx>=5)return;
+    const lcu=playerByCellId.get(Number(action.actorCellId));
+    const champId=Number(action.championId||0);
+    const [champKey,champKr]=champMeta(champId);
+    const lane=lcu?laneKey(lcu.lane):'';
+
+    // 이름: posSlot으로 inhouse 매칭 → LCU 순
+    let name='';
+    if(ihTeam?.length){
+      const laneIdx=lane?LANE_ORDER.indexOf(lane):-1;
+      const ihP=laneIdx>=0
+        ?(ihTeam.find(p=>p?.posSlot===laneIdx)||ihTeam[slotIdx])
+        :ihTeam[slotIdx];
+      if(ihP)name=dname(ihP.name);
+    }
+    if(!name&&lcu)name=dname(lcu.name);
+    if(!name)name=`${side==='blue'?'블루':'레드'} ${slotIdx+1}`;
+
+    rows[slotIdx]=[laneLabel(lane,slotIdx),name,champKey,champKr,lane||LANE_ORDER[slotIdx]];
   });
 
-  // LCU에 없는 슬롯은 inhouseTeams 이름으로 채움 (레드팀 보완)
-  for(let i=0;i<5;i++){
-    if(used.has(i))continue;
-    const name=ihName(side,i);
-    if(name)rows[i][1]=name;
-    // posSlot 기준 챔피언 정보가 있으면 반영
-    const ihP=ihBySlot[i];
-    if(ihP){
-      // LCU actions에서 이 슬롯 챔피언 찾기 (이름 매칭)
-      const key=LANE_ORDER[i]||'';
-      rows[i][0]=laneLabel(key,i);
+  // 미픽 슬롯에 inhouse 이름 미리 채우기
+  if(ihTeam?.length){
+    for(let i=picks.length;i<5;i++){
+      const ihP=ihTeam.find(p=>p?.posSlot===i)||ihTeam[i];
+      if(ihP)rows[i][1]=dname(ihP.name);
     }
   }
   return rows;
@@ -1697,16 +1700,20 @@ function applyLiveDraft(draft,animate){
   const nb=liveBlankTeam('blue'),nr=liveBlankTeam('red'),nbb=liveBlankBans(),nrb=liveBlankBans();
   const completed=(s.actions||[]).filter(a=>a.completed&&a.championId);
   const bc={blue:0,red:0};
-  liveTeamByLane(s.blue,'blue',completed).forEach((p,i)=>{nb[i]=p});
-  liveTeamByLane(s.red,'red',completed).forEach((p,i)=>{nr[i]=p});
+  liveTeamByLane('blue',s.blue,completed).forEach((p,i)=>{nb[i]=p});
+  liveTeamByLane('red',s.red,completed).forEach((p,i)=>{nr[i]=p});
   completed.filter(a=>a.type==='ban').forEach(a=>{const m=champMeta(a.championId);const pos=bc[a.side]++;
     if(a.side==='blue'&&pos<5)nbb[pos]=m;if(a.side==='red'&&pos<5)nrb[pos]=m});
   blue=nb;red=nr;blueBans=nbb;redBans=nrb;render();
-  completed.filter(a=>a.type==='pick').forEach(a=>{
-    const t=a.side==='blue'?blue:red;
-    const idx=t.findIndex(p=>p?.[2]&&champNumericId(p[2])===Number(a.championId));
-    const revealIdx=idx>=0?idx:a.idx;
-    if(t[revealIdx]?.[3]!=='대기 중')document.querySelector(`.champ-card[data-side="${a.side}"][data-idx="${revealIdx}"]`)?.classList.add('revealed')});
+  // 픽 순서로 카드 공개 (slotIdx = 이 픽이 몇 번째 픽인지)
+  ['blue','red'].forEach(side=>{
+    const sidePicks=completed.filter(a=>a.type==='pick'&&a.side===side&&a.completed).sort((a,b)=>a.id-b.id);
+    sidePicks.forEach((a,slotIdx)=>{
+      const t=side==='blue'?blue:red;
+      if(t[slotIdx]?.[3]!=='대기 중')
+        document.querySelector(`.champ-card[data-side="${side}"][data-idx="${slotIdx}"]`)?.classList.add('revealed');
+    });
+  });
   completed.filter(a=>a.type==='ban').forEach(a=>{
     const matches=completed.filter(x=>x.type==='ban'&&x.side===a.side);
     const pos=matches.findIndex(x=>x.id===a.id);
@@ -1721,9 +1728,9 @@ function applyLiveDraft(draft,animate){
   if(shouldAnim){
     if(latest.type==='ban'){const pos=completed.filter(a=>a.type==='ban'&&a.side===latest.side).findIndex(a=>`${a.id}:${a.type}:${a.championId}`===lk);if(pos>=0)revealBan(latest.side,pos)}
     else{
-      const t=latest.side==='blue'?blue:red;
-      const idx=t.findIndex(p=>p?.[2]&&champNumericId(p[2])===Number(latest.championId));
-      revealPick(latest.side,idx>=0?idx:latest.idx);
+      const sidePicks=completed.filter(a=>a.type==='pick'&&a.side===latest.side&&a.completed).sort((a,b)=>a.id-b.id);
+      const slotIdx=sidePicks.findIndex(a=>a.id===latest.id);
+      revealPick(latest.side,slotIdx>=0?slotIdx:latest.idx);
     }
     if(pickCount>=10&&!liveCompleteShown){liveCompleteShown=true;setTimeout(showComplete,5050)}
   }else{
