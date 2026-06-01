@@ -352,7 +352,7 @@ async function fetchChzzkProfile(chzzkName){
     const url=`https://api.chzzk.naver.com/service/v1/search/channels?keyword=${encodeURIComponent(chzzkName)}&size=5`;
     const json=await fetchChzzkJson(url,{headers:chzzkHeaders()},4000);
     const list=json?.content?.data||[];
-    const match=list.find(c=>String(c.channel?.channelName||'').toLowerCase()===key)||list[0];
+    const match=list.find(c=>String(c.channel?.channelName||'').toLowerCase()===key);
     const img=match?.channel?.channelImageUrl||null;
     chzzkProfileCache.set(key,img);
     return img;
