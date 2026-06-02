@@ -377,45 +377,79 @@ app.get('/api/draft-profiles', async(req,res)=>{
   }
   if(!db)db=readInhouseDB();
 
-  // 플레이어별 승패 계산
+  // 플레이어별 전적 (최근 5경기 form)
   const history=Array.isArray(db.history)?db.history:[];
-  function playerStats(viewerId){
-    let wins=0,losses=0;const form=[];
-    for(let i=history.length-1;i>=0;i--){
+  function playerForm(vid){
+    if(vid==null)return'';
+    const id=Number(vid);
+    if(!Number.isFinite(id)||id<=0)return'';
+    const form=[];
+    for(let i=history.length-1;i>=0&&form.length<5;i--){
       const h=history[i];
       if(!h.res)continue;
-      const inBlue=(h.blue||[]).some(p=>p.viewerId===viewerId);
-      const inRed=(h.red||[]).some(p=>p.viewerId===viewerId);
+      const inBlue=(h.blue||[]).some(p=>Number(p.viewerId)===id);
+      const inRed=(h.red||[]).some(p=>Number(p.viewerId)===id);
       if(!inBlue&&!inRed)continue;
       const won=(inBlue&&h.res==='blue')||(inRed&&h.res==='red');
-      if(won){wins++;}else{losses++;}
-      if(form.length<5)form.unshift(won?'W':'L');
+      form.unshift(won?'W':'L');
     }
-    return{wins,losses,form:form.join('')};
+    return form.join('');
   }
 
   const POS_SLOTS=['탑','정글','미드','원딜','서폿'];
-  const fmt=async (p,i)=>{
-    const stats=playerStats(p.viewerId);
-    // posSlot 우선, 없으면 배열 인덱스(curBlue[0]=탑,1=정글,...) 사용
-    const pos=Number.isInteger(p.posSlot)?POS_SLOTS[p.posSlot]:POS_SLOTS[i]||'';
-    const viewer=(db.viewers||[]).find(v=>Number(v.id)===Number(p.viewerId||p.id));
+
+  // viewer 조회 (viewerId → id 우선)
+  function findViewer(p){
+    const vid=Number(p.viewerId||p.id);
+    if(!Number.isFinite(vid)||vid<=0)return null;
+    return(db.viewers||[]).find(v=>Number(v.id)===vid)||null;
+  }
+
+  // 프로필 이미지를 순차로 가져와 rate limit 방지
+  async function fetchProfiles(list){
+    const results=[];
+    for(const name of list){
+      results.push(name?await fetchChzzkProfile(name).catch(()=>null):null);
+    }
+    return results;
+  }
+
+  const POS_SLOTS_SET=new Set(POS_SLOTS);
+  function resolvePos(p,i){
+    if(Number.isInteger(p.posSlot)&&p.posSlot>=0&&p.posSlot<5)return POS_SLOTS[p.posSlot];
+    return POS_SLOTS[i]||'';
+  }
+
+  const fmtSync=(p,i)=>{
+    const viewer=findViewer(p);
+    const chzzkName=(viewer?.chzzk||'').trim()||(p.chzzk||'').trim()||'';
+    // 이름: chzzk 닉네임 > viewer 롤닉(#태그 제거) > curBlue 롤닉
+    const name=chzzkName
+      ||(viewer?.name||'').replace(/#.*$/,'').trim()
+      ||(p.name||'').replace(/#.*$/,'').trim()
+      ||`플레이어${i+1}`;
+    // 승률: viewer.stats 직접 참조 (가장 정확)
+    const st=viewer?.stats||{w:0,l:0,d:0};
     return{
-      name:p.chzzk||viewer?.chzzk||(p.name||'').replace(/#.*$/,''),
+      name,
       tier:viewer?.tier||p.tier||'',
-      position:pos,
-      profileImage:await fetchChzzkProfile(p.chzzk||viewer?.chzzk),
-      wins:stats.wins,
-      losses:stats.losses,
-      form:stats.form,
+      position:resolvePos(p,i),
+      wins:Number(st.w)||0,
+      losses:Number(st.l)||0,
+      form:playerForm(p.viewerId||p.id),
+      _chzzkName:chzzkName, // 프로필 fetch용
     };
   };
-  // 이미 posSlot/인덱스 기준 정렬됐으므로 추가 정렬 불필요 — 원본 순서 유지
 
-  const[blue,red]=await Promise.all([
-    Promise.all((db.curBlue||[]).map((p,i)=>fmt(p,i))),
-    Promise.all((db.curRed||[]).map((p,i)=>fmt(p,i))),
-  ]);
+  const blueSync=(db.curBlue||[]).map(fmtSync);
+  const redSync=(db.curRed||[]).map(fmtSync);
+
+  // 프로필 이미지 순차 fetch (rate limit 방지)
+  const blueImgs=await fetchProfiles(blueSync.map(p=>p._chzzkName));
+  const redImgs=await fetchProfiles(redSync.map(p=>p._chzzkName));
+
+  const blue=blueSync.map(({_chzzkName,...rest},i)=>({...rest,profileImage:blueImgs[i]}));
+  const red=redSync.map(({_chzzkName,...rest},i)=>({...rest,profileImage:redImgs[i]}));
   res.json({blue,red});
 });
 

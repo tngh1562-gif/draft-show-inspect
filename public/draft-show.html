@@ -1422,9 +1422,10 @@ async function showMatchupResults(){
     {name:'Keria',tier:'CH',position:'서폿',wins:35,losses:4,form:'WWWWW',profileImage:null},
   ];
 
-  const isLive=profiles?.blue?.length||profiles?.red?.length;
-  const bList=isLive?profiles.blue:mockB;
-  const rList=isLive?profiles.red:mockR;
+  // profiles가 null이면 mock, blue/red 배열이 아예 없어도 mock
+  const isLive=profiles&&Array.isArray(profiles.blue)&&Array.isArray(profiles.red);
+  const bList=isLive&&profiles.blue.length?profiles.blue:mockB;
+  const rList=isLive&&profiles.red.length?profiles.red:mockR;
   const laneLabels=bList.map((p,i)=>p.position||LANES[i]||'');
 
   bList.forEach(p=>blueEl.insertAdjacentHTML('beforeend',vsPlayerHTML(p)));
