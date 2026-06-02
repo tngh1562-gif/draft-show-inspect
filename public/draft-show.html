@@ -1427,8 +1427,15 @@ async function showMatchupResults(){
 
   // profiles가 null이면 mock, blue/red 배열이 아예 없어도 mock
   const isLive=profiles&&Array.isArray(profiles.blue)&&Array.isArray(profiles.red);
-  const bList=isLive&&profiles.blue.length?profiles.blue:mockB;
-  const rList=isLive&&profiles.red.length?profiles.red:mockR;
+  // 레인 순 정렬 (탑→정글→미드→원딜→서폿)
+  const LANE_SORT_ORDER=['탑','정글','미드','원딜','서폿'];
+  const sortByLane=arr=>[...arr].sort((a,b)=>{
+    const ai=LANE_SORT_ORDER.indexOf(a.position);
+    const bi=LANE_SORT_ORDER.indexOf(b.position);
+    return(ai<0?99:ai)-(bi<0?99:bi);
+  });
+  const bList=isLive&&profiles.blue.length?sortByLane(profiles.blue):mockB;
+  const rList=isLive&&profiles.red.length?sortByLane(profiles.red):mockR;
   const laneLabels=bList.map((p,i)=>p.position||LANES[i]||'');
 
   bList.forEach(p=>blueEl.insertAdjacentHTML('beforeend',vsPlayerHTML(p)));
