@@ -405,16 +405,19 @@ app.get('/api/draft-profiles', async(req,res)=>{
     return(db.viewers||[]).find(v=>Number(v.id)===vid)||null;
   }
 
-  // 프로필 이미지를 순차로 가져와 rate limit 방지
+  // 프로필 이미지 2개씩 병렬+딜레이 (rate limit 방지, 속도 개선)
   async function fetchProfiles(list){
-    const results=[];
-    for(const name of list){
-      results.push(name?await fetchChzzkProfile(name).catch(()=>null):null);
+    const BATCH=2, DELAY=250;
+    const results=new Array(list.length).fill(null);
+    for(let i=0;i<list.length;i+=BATCH){
+      const batch=list.slice(i,i+BATCH);
+      const batchRes=await Promise.all(batch.map(n=>n?fetchChzzkProfile(n).catch(()=>null):null));
+      batchRes.forEach((r,j)=>{results[i+j]=r;});
+      if(i+BATCH<list.length)await new Promise(r=>setTimeout(r,DELAY));
     }
     return results;
   }
 
-  const POS_SLOTS_SET=new Set(POS_SLOTS);
   function resolvePos(p,i){
     if(Number.isInteger(p.posSlot)&&p.posSlot>=0&&p.posSlot<5)return POS_SLOTS[p.posSlot];
     return POS_SLOTS[i]||'';

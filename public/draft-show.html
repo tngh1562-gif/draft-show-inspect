@@ -1148,6 +1148,7 @@ const qs=new URLSearchParams(location.search);
 const isLiveMode=qs.get('demo')!=='1';
 const isPreviewVs=qs.get('preview')==='vs';
 let championById=new Map(),championKeyById=new Map(),lastLiveDraft=null,liveInitialized=false,liveCompleteShown=false;
+let _rowRevealTimer=null; // showMatchupResults 타이머 (모듈 레벨)
 let bgmUnlocked=false,bgmInChampSelect=false;
 const fallbackChampions={
   266:['Aatrox','아트록스'],103:['Ahri','아리'],84:['Akali','아칼리'],799:['Ambessa','암베사'],
@@ -1290,6 +1291,8 @@ function revealPick(side,i){
   pulse(side);runSweep();
 }
 function resetDraftDemo(){
+  if(_rowRevealTimer){clearTimeout(_rowRevealTimer);_rowRevealTimer=null;}
+  $('laneAnnounce')?.classList.remove('on');
   document.querySelectorAll('.champ-card,.ban-slot').forEach(el=>{
     el.classList.remove('revealed');
     el.style.animation='';
@@ -1446,28 +1449,34 @@ async function showMatchupResults(){
     </div>`;
   }).join('');
 
+  // 이전 타이머 정리
+  if(_rowRevealTimer){clearTimeout(_rowRevealTimer);_rowRevealTimer=null;}
+  $('laneAnnounce')?.classList.remove('on');
+
   // 라인별 순차 등장 (3초 간격)
   const LANE_EN={탑:'TOP',정글:'JGL',미드:'MID',원딜:'BOT',서폿:'SUP'};
   const bluePlayers=[...blueEl.querySelectorAll('.vs-player')];
   const redPlayers=[...redEl.querySelectorAll('.vs-player')];
   const laneNodes=[...divEl.querySelectorAll('.lane-node')];
-  let rowRevealTimer=null;
+  const maxRows=Math.max(bList.length,rList.length);
 
   function flashLaneRow(idx){
-    if(idx>=bList.length)return;
-    const bl=bList[idx],rl=rList[idx];
-    $('laLane').textContent=LANE_EN[laneLabels[idx]]||laneLabels[idx].toUpperCase();
-    $('laBlue').textContent=bl.name;
-    $('laRed').textContent=rl.name;
+    if(idx>=maxRows)return;
+    const bl=bList[idx]||{name:'',position:''};
+    const rl=rList[idx]||{name:'',position:''};
+    $('laLane').textContent=LANE_EN[laneLabels[idx]]||laneLabels[idx]?.toUpperCase()||'';
+    $('laBlue').textContent=bl.name||'';
+    $('laRed').textContent=rl.name||'';
     const el=$('laneAnnounce');
-    el.classList.remove('on');void el.offsetWidth;el.classList.add('on');
+    if(el){el.classList.remove('on');void el.offsetWidth;el.classList.add('on');}
   }
 
   function revealRow(idx){
     if(bluePlayers[idx])bluePlayers[idx].classList.add('in');
     if(redPlayers[idx])redPlayers[idx].classList.add('in');
     if(laneNodes[idx])laneNodes[idx].classList.add('in');
-    const rect=bluePlayers[idx]?.getBoundingClientRect();
+    const ref=bluePlayers[idx]||redPlayers[idx];
+    const rect=ref?.getBoundingClientRect();
     const cy=rect?(rect.top+rect.height/2):innerHeight/2;
     spawnBurst(innerWidth/2-220,cy,'rgba(88,180,255,A)',20);
     spawnBurst(innerWidth/2+220,cy,'rgba(255,77,106,A)',20);
@@ -1477,12 +1486,12 @@ async function showMatchupResults(){
 
   let curRow=0;
   (function step(){
-    if(curRow>=bList.length)return;
+    if(curRow>=maxRows)return;
     flashLaneRow(curRow);
     const i=curRow;
     setTimeout(()=>revealRow(i),700);
     curRow++;
-    if(curRow<bList.length)rowRevealTimer=setTimeout(step,3000);
+    if(curRow<maxRows)_rowRevealTimer=setTimeout(step,3000);
   })();
 }
 function scatterDraftCards(){
