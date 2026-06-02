@@ -362,6 +362,7 @@ async function fetchChzzkProfile(chzzkName){
 const INHOUSE_API_URL=(process.env.INHOUSE_API_URL||'https://davido-inhouse-production.up.railway.app').replace(/\/+$/,'');
 
 app.get('/api/draft-profiles', async(req,res)=>{
+ try{
   // Railway 내전 서버에서 최신 팀 데이터 가져오기
   let db=null;
   try{
@@ -405,9 +406,9 @@ app.get('/api/draft-profiles', async(req,res)=>{
     return(db.viewers||[]).find(v=>Number(v.id)===vid)||null;
   }
 
-  // 프로필 이미지 2개씩 병렬+딜레이 (rate limit 방지, 속도 개선)
+  // 프로필 이미지 3개씩 병렬+150ms딜레이
   async function fetchProfiles(list){
-    const BATCH=2, DELAY=250;
+    const BATCH=3, DELAY=150;
     const results=new Array(list.length).fill(null);
     for(let i=0;i<list.length;i+=BATCH){
       const batch=list.slice(i,i+BATCH);
@@ -418,8 +419,8 @@ app.get('/api/draft-profiles', async(req,res)=>{
     return results;
   }
 
+  // posSlot 정렬 후 배열 인덱스로 위치 결정 (중복 posSlot 방지)
   function resolvePos(p,i){
-    if(Number.isInteger(p.posSlot)&&p.posSlot>=0&&p.posSlot<5)return POS_SLOTS[p.posSlot];
     return POS_SLOTS[i]||'';
   }
 
@@ -456,6 +457,10 @@ app.get('/api/draft-profiles', async(req,res)=>{
   const blue=blueSync.map(({_chzzkName,...rest},i)=>({...rest,profileImage:blueImgs[i]}));
   const red=redSync.map(({_chzzkName,...rest},i)=>({...rest,profileImage:redImgs[i]}));
   res.json({blue,red});
+ }catch(err){
+   console.error('[draft-profiles] 오류:',err.message);
+   res.status(500).json({blue:[],red:[],error:err.message});
+ }
 });
 
 // ── 브로드캐스트 ──

@@ -1357,9 +1357,9 @@ function formDots(form){
   if(!form)return'';
   return [...String(form)].map(c=>`<span class="fd ${c.toLowerCase()==='w'?'w':'l'}">${c.toUpperCase()}</span>`).join('');
 }
-function vsPlayerHTML(p){
+function vsPlayerHTML(p,key=''){
   const img=p.profileImage
-    ?`<img src="${p.profileImage}" onerror="this.parentNode.textContent='👤'">`:`👤`;
+    ?`<img src="${p.profileImage}" onerror="this.parentNode.innerHTML='👤'">`:`👤`;
   const rgb=tierRgb(p.tier);
   const wins=p.wins??0,losses=p.losses??0,total=wins+losses;
   const pct=total?Math.round(wins/total*100):0;
@@ -1368,7 +1368,7 @@ function vsPlayerHTML(p){
     <div class="vs-main">
       <div class="vs-avatar-wrap">
         <div class="vs-avatar-ring"></div>
-        <div class="vs-avatar">${img}</div>
+        <div class="vs-avatar"${key?` data-key="${key}"`:''}>${img}</div>
       </div>
       <div class="vs-info">
         <div class="vs-name">${p.name||'?'}</div>
@@ -1404,7 +1404,10 @@ async function showMatchupResults(){
   setPhase('pick','팀 라인업');setToast('POST DRAFT — PLAYER LINEUP');
 
   let profiles=null;
-  try{profiles=await fetch('/api/draft-profiles').then(r=>r.json());}catch{}
+  try{
+    const r=await fetch('/api/draft-profiles');
+    if(r.ok)profiles=await r.json();
+  }catch{}
 
   const blueEl=$('vsBlue'),redEl=$('vsRed'),divEl=$('vsDivider');
   blueEl.innerHTML='';redEl.innerHTML='';
@@ -1438,8 +1441,15 @@ async function showMatchupResults(){
   const rList=isLive&&profiles.red.length?sortByLane(profiles.red):mockR;
   const laneLabels=bList.map((p,i)=>p.position||LANES[i]||'');
 
-  bList.forEach(p=>blueEl.insertAdjacentHTML('beforeend',vsPlayerHTML(p)));
-  rList.forEach(p=>redEl.insertAdjacentHTML('beforeend',vsPlayerHTML(p)));
+  // 이미지 없이 즉시 렌더링 (빈 화면 방지)
+  bList.forEach((p,i)=>blueEl.insertAdjacentHTML('beforeend',vsPlayerHTML({...p,profileImage:null},`b${i}`)));
+  rList.forEach((p,i)=>redEl.insertAdjacentHTML('beforeend',vsPlayerHTML({...p,profileImage:null},`r${i}`)));
+  // 프로필 이미지 비동기 업데이트
+  [...bList.map((p,i)=>({p,key:`b${i}`})),...rList.map((p,i)=>({p,key:`r${i}`}))].forEach(({p,key})=>{
+    if(!p.profileImage)return;
+    const avatar=document.querySelector(`.vs-avatar[data-key="${key}"]`);
+    if(avatar){avatar.innerHTML=`<img src="${p.profileImage}" onerror="this.parentNode.innerHTML='👤'">`;}
+  });
 
   // 중앙 라인 노드
   const POS_ICON_BASE='https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-champ-select/global/default/svg/';
