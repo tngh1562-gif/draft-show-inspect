@@ -419,8 +419,9 @@ app.get('/api/draft-profiles', async(req,res)=>{
     return results;
   }
 
-  // posSlot 정렬 후 배열 인덱스로 위치 결정 (중복 posSlot 방지)
+  // assignedPos 우선, 없으면 배열 인덱스 (POS_SLOTS: 탑/정글/미드/원딜/서폿)
   function resolvePos(p,i){
+    if(p.assignedPos&&POS_IDX[p.assignedPos]!==undefined)return p.assignedPos;
     return POS_SLOTS[i]||'';
   }
 
@@ -445,11 +446,11 @@ app.get('/api/draft-profiles', async(req,res)=>{
     };
   };
 
-  // posSlot 기준 정렬 → 배열 인덱스(i)로 탑(0)~서폿(4) 매핑
-  // (posSlot 중복이 있어도 인덱스로 포지션 결정하므로 중복 표시 없음)
-  const sortBySlot=arr=>[...arr].sort((a,b)=>(a.posSlot??99)-(b.posSlot??99));
-  const blueSync=sortBySlot(db.curBlue||[]).map(fmtSync);
-  const redSync=sortBySlot(db.curRed||[]).map(fmtSync);
+  // assignedPos(실제 배정 라인) 기준 정렬 — 팀박스와 동일 순서
+  const POS_IDX={'탑':0,'정글':1,'미드':2,'원딜':3,'서포터':4,'서폿':4};
+  const sortByAssigned=arr=>[...arr].sort((a,b)=>(POS_IDX[a.assignedPos]??99)-(POS_IDX[b.assignedPos]??99));
+  const blueSync=sortByAssigned(db.curBlue||[]).map(fmtSync);
+  const redSync=sortByAssigned(db.curRed||[]).map(fmtSync);
 
   // 프로필 이미지 순차 fetch (rate limit 방지)
   const blueImgs=await fetchProfiles(blueSync.map(p=>p._chzzkName));
