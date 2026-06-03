@@ -445,10 +445,11 @@ app.get('/api/draft-profiles', async(req,res)=>{
     };
   };
 
-  // curBlue/curRed 배열 순서 자체가 탑(0)→정글(1)→미드(2)→원딜(3)→서폿(4)
-  // 재정렬 없이 배열 인덱스(i)로 포지션 결정
-  const blueSync=(db.curBlue||[]).map(fmtSync);
-  const redSync=(db.curRed||[]).map(fmtSync);
+  // posSlot 기준 정렬 → 배열 인덱스(i)로 탑(0)~서폿(4) 매핑
+  // (posSlot 중복이 있어도 인덱스로 포지션 결정하므로 중복 표시 없음)
+  const sortBySlot=arr=>[...arr].sort((a,b)=>(a.posSlot??99)-(b.posSlot??99));
+  const blueSync=sortBySlot(db.curBlue||[]).map(fmtSync);
+  const redSync=sortBySlot(db.curRed||[]).map(fmtSync);
 
   // 프로필 이미지 순차 fetch (rate limit 방지)
   const blueImgs=await fetchProfiles(blueSync.map(p=>p._chzzkName));
