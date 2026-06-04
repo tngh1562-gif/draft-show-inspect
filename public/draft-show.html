@@ -1715,9 +1715,8 @@ function applyLiveDraft(draft,animate){
   else if(!nowCS&&bgmInChampSelect){bgmInChampSelect=false;bgmStop()}
   if(!draft?.connected){liveCompleteShown=false;_completeGuard=false;setToast(draft?.error||'롤 클라이언트를 기다리는 중');setPhase('ban','클라이언트 대기');return}
   if(!draft?.inChampSelect||!draft.session){
-    // 챔피언 선택이 끝났을 때는 guard 유지 (이미 완료 화면 진행 중)
-    // 완전히 새 세션 시작 시에만 리셋 (픽이 0개인 상태)
-    if(!liveCompleteShown)liveCompleteShown=false; // 아직 완료 안 된 경우만
+    // 챔피언 선택 종료 시 다음 세션을 위해 리셋
+    liveCompleteShown=false;_completeGuard=false;
     setToast('챔피언 선택 화면 대기 중');setPhase('ban','밴픽 대기');return;
   }
   const s=draft.session;
