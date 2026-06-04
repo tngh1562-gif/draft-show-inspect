@@ -1148,7 +1148,8 @@ const qs=new URLSearchParams(location.search);
 const isLiveMode=qs.get('demo')!=='1';
 const isPreviewVs=qs.get('preview')==='vs';
 let championById=new Map(),championKeyById=new Map(),lastLiveDraft=null,liveInitialized=false,liveCompleteShown=false;
-let _rowRevealTimer=null; // showMatchupResults 타이머 (모듈 레벨)
+let _rowRevealTimer=null;
+let _completeGuard=false; // showComplete 중복 실행 방지
 let bgmUnlocked=false,bgmInChampSelect=false;
 const fallbackChampions={
   266:['Aatrox','아트록스'],103:['Ahri','아리'],84:['Akali','아칼리'],799:['Ambessa','암베사'],
@@ -1292,6 +1293,8 @@ function revealPick(side,i){
 }
 function resetDraftDemo(){
   if(_rowRevealTimer){clearTimeout(_rowRevealTimer);_rowRevealTimer=null;}
+  _completeGuard=false;
+  liveCompleteShown=false;
   $('laneAnnounce')?.classList.remove('on');
   document.querySelectorAll('.champ-card,.ban-slot').forEach(el=>{
     el.classList.remove('revealed');
@@ -1578,6 +1581,8 @@ function scatterDraftCards(){
   requestAnimationFrame(frame);
 }
 function showComplete(){
+  if(_completeGuard)return; // 중복 방지
+  _completeGuard=true;
   setPhase('pick','밴픽 완료');setToast('모든 픽이 완료되었습니다');
   $('complete').classList.remove('on');void $('complete').offsetWidth;$('complete').classList.add('on');
   setTimeout(scatterDraftCards,620);
@@ -1708,8 +1713,13 @@ function applyLiveDraft(draft,animate){
   const nowCS=!!(draft?.connected&&draft?.inChampSelect&&draft?.session);
   if(nowCS&&!bgmInChampSelect){bgmInChampSelect=true;if(bgmUnlocked)bgmPlay()}
   else if(!nowCS&&bgmInChampSelect){bgmInChampSelect=false;bgmStop()}
-  if(!draft?.connected){liveCompleteShown=false;setToast(draft?.error||'롤 클라이언트를 기다리는 중');setPhase('ban','클라이언트 대기');return}
-  if(!draft?.inChampSelect||!draft.session){liveCompleteShown=false;setToast('챔피언 선택 화면 대기 중');setPhase('ban','밴픽 대기');return}
+  if(!draft?.connected){liveCompleteShown=false;_completeGuard=false;setToast(draft?.error||'롤 클라이언트를 기다리는 중');setPhase('ban','클라이언트 대기');return}
+  if(!draft?.inChampSelect||!draft.session){
+    // 챔피언 선택이 끝났을 때는 guard 유지 (이미 완료 화면 진행 중)
+    // 완전히 새 세션 시작 시에만 리셋 (픽이 0개인 상태)
+    if(!liveCompleteShown)liveCompleteShown=false; // 아직 완료 안 된 경우만
+    setToast('챔피언 선택 화면 대기 중');setPhase('ban','밴픽 대기');return;
+  }
   const s=draft.session;
   const nb=liveBlankTeam('blue'),nr=liveBlankTeam('red'),nbb=liveBlankBans(),nrb=liveBlankBans();
   const completed=(s.actions||[]).filter(a=>a.completed&&a.championId);
