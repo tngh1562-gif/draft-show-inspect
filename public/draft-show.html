@@ -1314,7 +1314,7 @@ function hashText(text){
   for(const ch of String(text||''))h=(h*31+ch.charCodeAt(0))>>>0;
   return h;
 }
-const RESULT_SHOW_DELAY_MS=3120;
+const RESULT_SHOW_DELAY_MS=5300;
 function matchupRows(){
   return LANE_ORDER.map((key,i)=>{
     const withLane=(pick,side)=>{
@@ -1585,8 +1585,8 @@ function showComplete(){
   _completeGuard=true;
   setPhase('pick','밴픽 완료');setToast('모든 픽이 완료되었습니다');
   $('complete').classList.remove('on');void $('complete').offsetWidth;$('complete').classList.add('on');
-  setTimeout(scatterDraftCards,620);
-  setTimeout(()=>document.querySelector('.arena')?.classList.add('results-ready'),2800);
+  setTimeout(scatterDraftCards,2100);
+  setTimeout(()=>document.querySelector('.arena')?.classList.add('results-ready'),4800);
   setTimeout(showMatchupResults,RESULT_SHOW_DELAY_MS);
 }
 
@@ -1715,8 +1715,8 @@ function applyLiveDraft(draft,animate){
   else if(!nowCS&&bgmInChampSelect){bgmInChampSelect=false;bgmStop()}
   if(!draft?.connected){liveCompleteShown=false;_completeGuard=false;setToast(draft?.error||'롤 클라이언트를 기다리는 중');setPhase('ban','클라이언트 대기');return}
   if(!draft?.inChampSelect||!draft.session){
-    // 챔피언 선택 종료 시 다음 세션을 위해 리셋
-    liveCompleteShown=false;_completeGuard=false;
+    // 완료 화면 표시 중이면 guard 유지 (세션 전환 노이즈로 인한 중복 방지)
+    if(!_completeGuard) liveCompleteShown=false;
     setToast('챔피언 선택 화면 대기 중');setPhase('ban','밴픽 대기');return;
   }
   const s=draft.session;
@@ -1742,6 +1742,14 @@ function applyLiveDraft(draft,animate){
     const pos=matches.findIndex(x=>x.id===a.id);
     if(pos>=0)document.querySelector(`[data-ban="${a.side}-${pos}"]`)?.classList.add('revealed')});
   const pickCount=completed.filter(a=>a.type==='pick').length;
+  // 새 게임 세션 감지: pickCount=0인데 guard가 살아있으면 직전 게임 완료 후 새 밴픽 시작
+  if(_completeGuard&&pickCount===0){
+    liveCompleteShown=false;_completeGuard=false;applyLiveDraft.seen=new Set();
+    if(_rowRevealTimer){clearTimeout(_rowRevealTimer);_rowRevealTimer=null;}
+    const mr=$('matchupResults');if(mr){mr.classList.remove('on');mr.setAttribute('aria-hidden','true');}
+    document.querySelector('.arena')?.classList.remove('draft-exit','results-ready');
+    $('laneAnnounce')?.classList.remove('on');
+  }
   const latest=completed[completed.length-1];
   const lk=latest?`${latest.id}:${latest.type}:${latest.championId}`:'';
   if(!applyLiveDraft.seen)applyLiveDraft.seen=new Set();
